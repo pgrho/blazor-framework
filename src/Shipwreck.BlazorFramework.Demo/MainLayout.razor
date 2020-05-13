@@ -1,0 +1,47 @@
+﻿@inherits LayoutComponentBase
+<style>
+    .root {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-flow: column nowrap;
+    }
+
+    .header {
+        position: relative;
+        height: 48px;
+        flex-grow: 0;
+        display: flex;
+        flex-flow: row nowrap;
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+    }
+
+        .header li {
+            display: block;
+        }
+
+            .header li a {
+                color: #fff;
+                padding: 1em;
+            }
+
+    .content {
+        position: relative;
+        flex-grow: 100;
+    }
+</style>
+<div class="root">
+    <ul class="header">
+        <li><a href="/">Index</a></li>
+    </ul>
+    <div class="content">
+        @Body
+    </div>
+</div>

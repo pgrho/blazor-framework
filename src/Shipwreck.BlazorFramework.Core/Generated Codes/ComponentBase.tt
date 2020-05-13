@@ -1,0 +1,160 @@
+﻿<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Components;
+using Shipwreck.BlazorFramework.ViewModels;
+
+<#
+foreach (var g in new [] {
+    new { NS = "Shipwreck.BlazorFramework.Components", T = "BindableComponentBase" },
+    new { NS = "Shipwreck.BlazorFramework.Components", T = "BindableLayoutComponentBase" },
+    // new { NS = "Shipwreck.BlazorFramework.ViewModels", T = "StatefulModel" },
+    // new { NS = "Shipwreck.BlazorFramework.ViewModels", T = "StatefulCollection<T>" },
+}.GroupBy(e => e.NS))
+{
+    var isComponent = g.Key.StartsWith("Shipwreck.BlazorFramework.Components");
+    var commonArgs = isComponent ? ", Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true" : ", [CallerMemberName]string propertyName = null, Action onChanged = null";
+    var commonApply = isComponent ? ", onChanged, propertyName, render: render" : ", propertyName, onChanged";
+    var notification = isComponent ? "if (propertyName != null) RaisePropertyChanged(propertyName, render)" : "if (propertyName != null) RaisePropertyChanged(propertyName)";
+#>
+namespace <#= g.Key #>
+{
+<#
+    foreach (var t in g)
+    {
+#>
+    partial class <#= t.T #>
+    {
+        protected bool SetProperty(ref string field, string value<#= commonArgs #>)
+        {
+            if (value != field)
+            {
+                field = value;
+                onChanged?.Invoke();
+                <#= notification #>;
+                return true;
+            }
+            return false;
+        }
+
+        protected bool SetProperty<TValue>(ref TValue field, TValue value<#= commonArgs #>)
+        {
+            if (!((field as IEquatable<TValue>)?.Equals(value) ?? Equals(field, value)))
+            {
+                field = value;
+                onChanged?.Invoke();
+                <#= notification #>;
+                return true;
+            }
+            return false;
+        }
+<#
+foreach (var v in new [] { "byte", "ushort", "uint", "ulong" })
+{
+#>
+
+        protected bool SetFlagProperty(ref <#= v #> field, <#= v #> flag, bool hasFlag<#= commonArgs #>)
+        {
+            var nv = (<#= v #>)(hasFlag ? (field | flag) : (field & ~flag));
+            return SetProperty(ref field, nv<#= commonApply #>);
+        }
+<#
+}
+if (isComponent)
+{
+#>
+        protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null, bool render = true)
+        {
+            if (render) StateHasChanged();
+        }
+<#
+}
+#>
+    }
+<#
+    }
+#>
+}
+<#
+}
+#>
+namespace Shipwreck.BlazorFramework.Components
+{
+<#
+foreach (var t in new [] {
+    new { Class = "BindableComponentBase<T>", Property = "T" },
+    new { Class = "BindableLayoutComponentBase<T>", Property = "T" },
+    new { Class = "ListComponentBase<TDataContext, TItem>", Property = "TDataContext" } })
+{
+#>
+    partial class <#= t.Class #>
+    {
+        private <#= t.Property #> _DataContext;
+
+        [Parameter]
+        public virtual <#= t.Property #> DataContext
+        {
+            get => _DataContext;
+            set
+            {
+                var prev = _DataContext;
+                if (value != prev)
+                {
+                    OnDataContextRemoved(prev);
+                    _DataContext = value;
+                    OnDataContextSet(value);
+                    StateHasChanged();
+                }
+            }
+        }
+
+        protected virtual void OnDataContextRemoved(<#= t.Property #> dataContext)
+        {
+            if (dataContext is INotifyPropertyChanged n)
+            {
+                n.PropertyChanged -= DataContext_PropertyChanged;
+            }
+            if (dataContext is IRequestFocus r)
+            {
+                r.FocusRequested -= DataContext_FocusRequested;
+            }
+        }
+
+        protected virtual void OnDataContextSet(<#= t.Property #> dataContext)
+        {
+            if (dataContext is INotifyPropertyChanged n)
+            {
+                n.PropertyChanged += DataContext_PropertyChanged;
+            }
+            if (dataContext is IRequestFocus r)
+            {
+                r.FocusRequested += DataContext_FocusRequested;
+            }
+        }
+        
+        private void DataContext_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (OnDataContextPropertyChanged(e.PropertyName))
+            {
+                StateHasChanged();
+            }
+        }
+        
+        protected virtual bool OnDataContextPropertyChanged(string propertyName)
+            => true;
+
+        private void DataContext_FocusRequested(string obj)
+            => OnDataContextRequestedFocus(obj);
+
+        protected virtual bool OnDataContextRequestedFocus(string propertyName)
+        {
+            Console.WriteLine("Failed to focus element for property {0}", propertyName);
+            return false;
+        }
+    }
+<#
+}
+#>
+}
