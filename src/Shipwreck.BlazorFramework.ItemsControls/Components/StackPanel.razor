@@ -1,0 +1,39 @@
+﻿@typeparam T
+@inherits ItemsControl<T>
+<style>
+    .scroller {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        top: 16px;
+        bottom: 16px;
+        overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .scroller-item {
+        height: 96px;
+        margin: 16px;
+        box-sizing: border-box;
+        border: 1px solid #888;
+        border-radius: 4px;
+        color: #ccc;
+        overflow: hidden;
+        font-size: 32px;
+        user-select: none;
+    }
+</style>
+<div @ref="@Element"
+     class="scroller">
+    @if (Source != null)
+    {
+        for (var i = 0; i < Source.Count; i++)
+        {
+            var e = Source[i];
+            <div class="scroller-item"
+                 data-panelItemIndex="@i">
+                @(i): @e.GetHashCode()
+            </div>
+        }
+    }
+</div>

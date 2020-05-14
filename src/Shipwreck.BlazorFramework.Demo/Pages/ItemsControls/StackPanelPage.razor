@@ -1,0 +1,9 @@
+﻿@page "/itemsControls/stackPanel"
+<StackPanel T="Item" Source="@_Items" />
+@code
+    {
+    class Item
+    {
+    }
+    private readonly Item[] _Items = Enumerable.Range(0, 500).Select(e => new Item()).ToArray();
+}

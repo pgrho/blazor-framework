@@ -1,0 +1,13 @@
+{
+  "name": "shipwreck.blazorframework.itemscontrols",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "del": "5.1.0",
+    "gulp": "4.0.2",
+    "gulp-concat": "2.6.1",
+    "gulp-uglify": "^3.0.1",
+    "typescript": "3.5.3",
+    "gulp-typescript": "5.0.1"
+  }
+}

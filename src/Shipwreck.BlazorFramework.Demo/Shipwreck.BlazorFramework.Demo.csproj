@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shipwreck.BlazorFramework.Core\Shipwreck.BlazorFramework.Core.csproj" />
+    <ProjectReference Include="..\Shipwreck.BlazorFramework.ItemsControls\Shipwreck.BlazorFramework.ItemsControls.csproj" />
   </ItemGroup>
 
 </Project>
