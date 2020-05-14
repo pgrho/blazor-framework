@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
 using Shipwreck.BlazorFramework.JSInterop;
 
 namespace Shipwreck.BlazorFramework.Components
@@ -7,19 +8,25 @@ namespace Shipwreck.BlazorFramework.Components
     public partial class StackPanel<T> : ItemsControl<T>
         where T : class
     {
-        protected override bool HasClientSize => _ClientHeight > 0;
+        #region ItemHeight
 
-        protected override bool SetRange(ScrollInfo info, int firstIndex)
+        private float _DefaultItemHeight = 100;
+        private float? _MinItemHeight;
+
+        [Parameter]
+        public float DefaultItemHeight
         {
-            _ClientHeight = info.ClientHeight;
-
-            var r = Math.Max((int)Math.Ceiling(_ClientHeight / (ItemHeight + ItemMarginY)), 1);
-
-            return SetRange(firstIndex, firstIndex + r - 1);
+            get => _DefaultItemHeight;
+            set => SetProperty(ref _DefaultItemHeight, value);
         }
 
-        protected override bool SetScroll(ItemsControlScrollInfo info)
+        protected float ItemHeight => _MinItemHeight ?? DefaultItemHeight;
+
+        #endregion ItemHeight
+
+        protected override void SetScroll(ItemsControlScrollInfo info)
         {
+            _MinItemHeight = info.MinHeight > 0 ? info?.MinHeight : null;
             int fi;
             float ft;
             if (info.First != null)
@@ -44,20 +51,25 @@ namespace Shipwreck.BlazorFramework.Components
                 ft = 0;
             }
 
-            _ScrollTopInFirstItem = ft;
-
-            return SetRange(info.Viewport, fi);
+            UpdateRange(info.Viewport, fi, ft);
         }
 
-        protected override ValueTask ScrollAsync()
+        protected override void UpdateRange(ScrollInfo info, int firstIndex, float localY)
         {
-            StateHasChanged();
+            var _ClientHeight = info.ClientHeight;
 
-            return JS.ScrollTo(Element, 0, Math.Max(0, (ItemHeight + ItemMarginY) * FirstIndex + _ScrollTopInFirstItem), false);
+            var r = Math.Max((int)Math.Ceiling((_ClientHeight + localY) / ItemHeight), 1);
+
+            Console.WriteLine($"ClientHeight={_ClientHeight}, ItemHeight={ItemHeight}, localY={localY}, rows={r}");
+
+            SetVisibleRange(firstIndex, firstIndex + r - 1, localY);
         }
 
-        private float _ScrollTopInFirstItem;
 
-        private float _ClientHeight;
+        protected override ValueTask ScrollAsync(int firstIndex, float localY)
+        {
+            return JS.scrollToItem(Element, ItemSelector, firstIndex, localY, 1, false);
+            //  return JS.ScrollTo(Element, 0, Math.Max(0, (ItemHeight + ItemMargin) * firstIndex + localY), false);
+        }
     }
 }

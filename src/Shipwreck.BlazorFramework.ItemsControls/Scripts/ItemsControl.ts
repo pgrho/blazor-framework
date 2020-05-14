@@ -75,6 +75,46 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
     export function getItemsControlScrollInfo(element: HTMLElement, itemSelector: string) {
         return JSON.stringify(__itemsControlInfo(element, itemSelector));
     }
+    export function scrollToItem(element: HTMLElement, itemSelector: string, index: number, localY: number, column: number, smooth: boolean) {
+        if (element) {
+            const items = element.querySelectorAll(itemSelector);
+
+            for (let i = 0; i < items.length; i++) {
+                const e = items[i] as HTMLElement;
+
+                const sf = parseInt(e.getAttribute('data-itemindex'), 10);
+                if (sf <= index) {
+                    const la = e.getAttribute('data-itemlastindex');
+
+                    if (la) {
+                        const sl = parseInt(la, 10);
+
+                        if (index <= sl) {
+                            const b = __offsetInfo(e);
+
+                            element.scrollTo({
+                                left: 0,
+                                top: b.Top + Math.floor((index - sf) / column) * b.Height + localY,
+                                behavior: smooth ? 'smooth' : 'auto'
+                            });
+
+                            return;
+                        }
+                    } else if (sf === index) {
+                        const b = __offsetInfo(e);
+
+                        element.scrollTo({
+                            left: 0,
+                            top: b.Top + localY,
+                            behavior: smooth ? 'smooth' : 'auto'
+                        });
+
+                        return;
+                    }
+                }
+            }
+        }
+    }
     function __itemsControlInfo(element: HTMLElement, itemSelector: string) {
         const si = __scrollInfo(element);
         const items = element.querySelectorAll(itemSelector);
@@ -142,12 +182,22 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
         });
     }
 
+    function __parsePx(s: string): number {
+        return s !== null && s !== undefined && /^([\-+]?\d+(?:\.\d+)?)px$/.test(s) ? parseFloat(RegExp.$1) : 0;
+    }
+
     function __offsetInfo(element: HTMLElement): IBound {
+        const s = window.getComputedStyle(element);
+        const ml = __parsePx(s.marginLeft);
+        const mt = __parsePx(s.marginTop);
+        //const mr = __parsePx(s.marginRight);
+        //const mb = __parsePx(s.marginBottom);
+
         return ({
-            Left: element.offsetLeft,
-            Top: element.offsetTop,
-            Width: element.offsetWidth,
-            Height: element.offsetHeight
+            Left: element.offsetLeft - ml,
+            Top: element.offsetTop - mt,
+            Width: element.offsetWidth + ml,
+            Height: element.offsetHeight + mt
         });
     }
 }

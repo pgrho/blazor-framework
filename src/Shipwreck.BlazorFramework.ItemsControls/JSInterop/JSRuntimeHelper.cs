@@ -16,6 +16,10 @@ namespace Shipwreck.BlazorFramework.JSInterop
             => js.InvokeVoidAsync(
                 "Shipwreck.BlazorFramework.ItemsControls.scrollTo", element, left, top, isSmooth);
 
+        public static ValueTask scrollToItem(this IJSRuntime js, ElementReference element, string itemSelector, int index, float localY, int column, bool isSmooth)
+            => js.InvokeVoidAsync(
+                "Shipwreck.BlazorFramework.ItemsControls.scrollToItem", element, itemSelector, index, localY, column, isSmooth);
+
         public static ValueTask DetachWindowResize(this IJSRuntime js, IWindowResizeEventListener listener)
             => js.InvokeVoidAsync(
                 "Shipwreck.BlazorFramework.ItemsControls.detachWindowResize",

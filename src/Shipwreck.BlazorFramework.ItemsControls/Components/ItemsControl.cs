@@ -20,64 +20,6 @@ namespace Shipwreck.BlazorFramework.Components
         [Parameter]
         public string ItemSelector { get; set; } = ":scope > *[data-itemindex]";
 
-        #region ItemWidth
-
-        private float _DefaultItemWidth = 100;
-        private float? _MinItemWidth;
-
-        [Parameter]
-        public float DefaultItemWidth
-        {
-            get => _DefaultItemWidth;
-            set => SetProperty(ref _DefaultItemWidth, value);
-        }
-
-        protected float ItemWidth => _MinItemWidth ?? DefaultItemWidth;
-
-        #endregion ItemWidth
-
-        #region ItemHeight
-
-        private float _DefaultItemHeight = 100;
-        private float? _MinItemHeight;
-
-        [Parameter]
-        public float DefaultItemHeight
-        {
-            get => _DefaultItemHeight;
-            set => SetProperty(ref _DefaultItemHeight, value);
-        }
-
-        protected float ItemHeight => _MinItemHeight ?? DefaultItemHeight;
-
-        #endregion ItemHeight
-
-        #region ItemMarginX
-
-        private float _ItemMarginX;
-
-        [Parameter]
-        public float ItemMarginX
-        {
-            get => _ItemMarginX;
-            set => SetProperty(ref _ItemMarginX, value);
-        }
-
-        #endregion ItemMarginX
-
-        #region ItemMarginY
-
-        private float _ItemMarginY;
-
-        [Parameter]
-        public float ItemMarginY
-        {
-            get => _ItemMarginY;
-            set => SetProperty(ref _ItemMarginY, value);
-        }
-
-        #endregion ItemMarginY
-
         protected ElementReference Element { get; set; }
 
         //[Parameter(CaptureUnmatchedValues = true)]
@@ -154,7 +96,9 @@ namespace Shipwreck.BlazorFramework.Components
         protected int FirstIndex { get; private set; } = -1;
         protected int LastIndex { get; private set; } = -1;
 
-        protected bool SetRange(int first, int last)
+        private bool _IsScrolling;
+
+        protected async void SetVisibleRange(int first, int last, float localY)
         {
             first = Math.Max(0, first);
             last = Math.Min(last, Source?.Count ?? 0 - 1);
@@ -167,24 +111,22 @@ namespace Shipwreck.BlazorFramework.Components
                 FirstIndex = first;
                 LastIndex = last;
 
-                return true;
+                _IsScrolling = true;
+                StateHasChanged();
+                if (first >= 0)
+                {
+                    await ScrollAsync(first, localY).ConfigureAwait(false);
+                }
+                _IsScrolling = false;
             }
-            return false;
         }
 
         #endregion Range
 
-        protected abstract bool HasClientSize { get; }
+        protected abstract void SetScroll(ItemsControlScrollInfo info);
+        protected abstract void UpdateRange(ScrollInfo info, int firstIndex, float localY);
 
-        protected abstract bool SetRange(ScrollInfo info, int firstIndex);
-
-        protected abstract bool SetScroll(ItemsControlScrollInfo info);
-
-        // protected float Local
-
-        private bool _IsScrolling;
-
-        protected abstract ValueTask ScrollAsync();
+        protected abstract ValueTask ScrollAsync(int firstIndex, float localY);
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -197,12 +139,7 @@ namespace Shipwreck.BlazorFramework.Components
                 {
                     _CollectionChanged = false;
                     var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
-                    if (SetRange(si, Math.Max(FirstIndex, 0)))
-                    {
-                        _IsScrolling = true;
-                        await ScrollAsync().ConfigureAwait(false);
-                        _IsScrolling = false;
-                    }
+                    UpdateRange(si, Math.Max(FirstIndex, 0), 0);
                 }
             }
         }
@@ -223,17 +160,11 @@ namespace Shipwreck.BlazorFramework.Components
         public async void OnWindowResized()
         {
             var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
-
-            if (SetRange(si, Math.Max(FirstIndex, 0)))
-            {
-                _IsScrolling = true;
-                await ScrollAsync().ConfigureAwait(false);
-                _IsScrolling = false;
-            }
+            UpdateRange(si, Math.Max(FirstIndex, 0), 0);
         }
 
         [JSInvokable]
-        public async void OnElementScroll(string jsonScrollInfo)
+        public void OnElementScroll(string jsonScrollInfo)
         {
             if (_IsScrolling)
             {
@@ -241,15 +172,8 @@ namespace Shipwreck.BlazorFramework.Components
             }
 
             var si = JsonSerializer.Deserialize<ItemsControlScrollInfo>(jsonScrollInfo);
-            _MinItemWidth = si.MinWidth > 0 ? si?.MinWidth : null;
-            _MinItemHeight = si.MinHeight > 0 ? si?.MinHeight : null;
 
-            if (SetScroll(si))
-            {
-                _IsScrolling = true;
-                await ScrollAsync().ConfigureAwait(false);
-                _IsScrolling = false;
-            }
+            SetScroll(si);
         }
 
         public void Dispose()
