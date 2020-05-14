@@ -1,5 +1,8 @@
 ﻿@page "/itemsControls/stackPanel"
-<StackPanel T="Item" Source="@_Items" />
+<StackPanel T="Item"
+            Source="@_Items"
+            DefaultItemHeight="96"
+            ItemMarginY="32" />
 @code
     {
     class Item

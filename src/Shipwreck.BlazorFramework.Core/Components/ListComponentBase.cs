@@ -58,12 +58,18 @@ namespace Shipwreck.BlazorFramework.Components
             }
         }
 
+        private List<T> _Handled;
+
         protected virtual void OnItemAdded(T item)
         {
             if (item is INotifyPropertyChanged n)
             {
-                n.PropertyChanged -= Item_PropertyChanged;
-                n.PropertyChanged += Item_PropertyChanged;
+                _Handled = _Handled ?? new List<T>();
+                if (!_Handled.Contains(item))
+                {
+                    n.PropertyChanged += Item_PropertyChanged;
+                    _Handled.Add(item);
+                }
             }
         }
 
@@ -72,6 +78,23 @@ namespace Shipwreck.BlazorFramework.Components
             if (item is INotifyPropertyChanged n)
             {
                 n.PropertyChanged -= Item_PropertyChanged;
+                _Handled.Remove(item);
+            }
+        }
+
+        protected virtual void OnReset()
+        {
+            if (_Handled != null)
+            {
+                foreach (var item in _Handled.ToArray())
+                {
+                    OnItemRemoved(item);
+                }
+            }
+
+            foreach (var m in Source)
+            {
+                OnItemAdded(m);
             }
         }
 
@@ -82,6 +105,11 @@ namespace Shipwreck.BlazorFramework.Components
                 return;
             }
 
+            OnCollectionChanged(e);
+        }
+
+        protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+        {
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
@@ -133,16 +161,14 @@ namespace Shipwreck.BlazorFramework.Components
                     return;
             }
 
-            foreach (var m in Source)
-            {
-                OnItemAdded(m);
-            }
+            OnReset();
+
             StateHasChanged();
         }
 
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (OnItemPropertyChanged(e.PropertyName))
+            if (OnItemPropertyChanged((T)sender, e.PropertyName))
             {
                 StateHasChanged();
             }
@@ -156,7 +182,7 @@ namespace Shipwreck.BlazorFramework.Components
             }
         }
 
-        protected virtual bool OnItemPropertyChanged(string propertyName)
+        protected virtual bool OnItemPropertyChanged(T item, string propertyName)
             => true;
 
         protected virtual bool OnSourcePropertyChanged(string propertyName)

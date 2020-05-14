@@ -44,61 +44,12 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
         LastIndex?: number;
     }
 
-    export function attachElementScroll(element: Element, obj: IHasElementScroll, itemSelector: string) {
+    export function attachElementScroll(element: HTMLElement, obj: IHasElementScroll, itemSelector: string) {
         if (obj && !obj[ES]) {
             const h = async () => {
                 const s = new Date().getTime();
                 try {
-                    const si = __scrollInfo(element);
-                    const items = element.querySelectorAll(itemSelector);
-
-                    const vt = si.ScrollTop;
-                    const vb = vt + si.ClientHeight;
-
-                    let minWidth = Number.MAX_SAFE_INTEGER;
-                    let minHeight = Number.MAX_SAFE_INTEGER;
-
-                    let min: IElement;
-                    let max: IElement;
-
-                    for (let i = 0; i < items.length; i++) {
-                        const e = items[i] as HTMLElement;
-
-                        const b: IElement = __offsetInfo(e);
-                        const bottom = b.Top + b.Height;
-
-
-                        if (vt <= bottom
-                            && e.offsetTop <= vb) {
-                            const sf = parseInt(e.getAttribute('data-panelItemIndex'), 10);
-                            if (sf >= 0) {
-                                const sl = parseInt(e.getAttribute('data-panelItemLastIndex'), 10) || sf;
-
-                                b.FirstIndex = sf;
-                                b.LastIndex = sl;
-
-                                if (!min || min.FirstIndex > sf) {
-                                    min = b;
-                                }
-                                if (!max || max.LastIndex < sl) {
-                                    max = b;
-                                }
-
-                                if (sf === sl) {
-                                    minWidth = Math.min(minWidth, b.Width);
-                                    minHeight = Math.min(minHeight, b.Height);
-                                }
-                            }
-                        }
-                    }
-
-                    await obj.invokeMethodAsync('OnElementScroll', JSON.stringify({
-                        Viewport: si,
-                        First: min,
-                        Last: max,
-                        MinWidth: minWidth !== Number.MAX_SAFE_INTEGER ? minWidth : 0,
-                        MinHeight: minHeight !== Number.MAX_SAFE_INTEGER ? minHeight : 0,
-                    }));
+                    await obj.invokeMethodAsync('OnElementScroll', JSON.stringify(__itemsControlInfo(element, itemSelector)));
                 } catch (ex) {
                     console.log(ex);
                 } finally {
@@ -108,6 +59,64 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
             obj[ES] = h;
             element.addEventListener('scroll', h, { passive: true });
         }
+    }
+
+    export function getScrollInfo(element: Element) {
+        return JSON.stringify(__scrollInfo(element));
+    }
+    export function getItemsControlScrollInfo(element: HTMLElement, itemSelector: string) {
+        return JSON.stringify(__itemsControlInfo(element, itemSelector));
+    }
+    function __itemsControlInfo(element: HTMLElement, itemSelector: string) {
+        const si = __scrollInfo(element);
+        const items = element.querySelectorAll(itemSelector);
+
+        const vt = si.ScrollTop;
+        const vb = vt + si.ClientHeight;
+
+        let minWidth = Number.MAX_SAFE_INTEGER;
+        let minHeight = Number.MAX_SAFE_INTEGER;
+
+        let min: IElement;
+        let max: IElement;
+
+        for (let i = 0; i < items.length; i++) {
+            const e = items[i] as HTMLElement;
+
+            const b: IElement = __offsetInfo(e);
+            const bottom = b.Top + b.Height;
+
+            if (vt <= bottom
+                && e.offsetTop <= vb) {
+                const sf = parseInt(e.getAttribute('data-itemindex'), 10);
+                if (sf >= 0) {
+                    const sl = parseInt(e.getAttribute('data-itemlastindex'), 10) || sf;
+
+                    b.FirstIndex = sf;
+                    b.LastIndex = sl;
+
+                    if (!min || min.FirstIndex > sf) {
+                        min = b;
+                    }
+                    if (!max || max.LastIndex < sl) {
+                        max = b;
+                    }
+
+                    if (sf === sl) {
+                        minWidth = Math.min(minWidth, b.Width);
+                        minHeight = Math.min(minHeight, b.Height);
+                    }
+                }
+            }
+        }
+
+        return {
+            Viewport: si,
+            First: min,
+            Last: max,
+            MinWidth: minWidth !== Number.MAX_SAFE_INTEGER ? minWidth : 0,
+            MinHeight: minHeight !== Number.MAX_SAFE_INTEGER ? minHeight : 0,
+        };
     }
 
     function __scrollInfo(element: Element) {
@@ -130,9 +139,5 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
             Width: element.offsetWidth,
             Height: element.offsetHeight
         });
-    }
-
-    export function getScrollInfo(element: Element) {
-        return JSON.stringify(__scrollInfo(element));
     }
 }

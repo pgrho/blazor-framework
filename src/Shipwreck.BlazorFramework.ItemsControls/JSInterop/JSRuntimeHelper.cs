@@ -30,5 +30,12 @@ namespace Shipwreck.BlazorFramework.JSInterop
 
             return JsonSerializer.Deserialize<ScrollInfo>(json);
         }
+
+        public static async ValueTask<ItemsControlScrollInfo> GetItemsControlScrollInfoAsync(this IJSRuntime js, ElementReference element, string itemSelector)
+        {
+            var json = await js.InvokeAsync<string>("Shipwreck.BlazorFramework.ItemsControls.getItemsControlScrollInfo", element, itemSelector).ConfigureAwait(false);
+
+            return JsonSerializer.Deserialize<ItemsControlScrollInfo>(json);
+        }
     }
 }

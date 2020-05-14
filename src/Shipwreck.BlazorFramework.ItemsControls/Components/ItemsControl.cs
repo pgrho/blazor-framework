@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Specialized;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -16,7 +18,7 @@ namespace Shipwreck.BlazorFramework.Components
         public IJSRuntime JS { get; set; }
 
         [Parameter]
-        public string ItemSelector { get; set; } = ":scope > *[data-panelItemIndex]";
+        public string ItemSelector { get; set; } = ":scope > *[data-itemindex]";
 
         #region ItemWidth
 
@@ -81,12 +83,122 @@ namespace Shipwreck.BlazorFramework.Components
         //[Parameter(CaptureUnmatchedValues = true)]
         //public IDictionary<string, object> AdditionalAttributes { get; set; }
 
+        protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Move && e.NewItems != null)
+            {
+                if (FirstIndex > 0
+                    && e.NewStartingIndex + e.NewItems.Count < FirstIndex
+                    && e.OldStartingIndex + e.NewItems.Count < FirstIndex)
+                {
+                    return;
+                }
+                if (LastIndex + 1 < Source?.Count
+                    && e.NewStartingIndex + e.NewItems.Count > LastIndex
+                    && e.OldStartingIndex + e.NewItems.Count > LastIndex)
+                {
+                    return;
+                }
+            }
+            base.OnCollectionChanged(e);
+        }
+
+        protected override void OnItemAdded(T item)
+        {
+            base.OnItemAdded(item);
+            CollectionChanged = true;
+        }
+
+        protected override void OnItemRemoved(T item)
+        {
+            base.OnItemRemoved(item);
+            CollectionChanged = true;
+        }
+
+        protected override void OnReset()
+        {
+            base.OnReset();
+            CollectionChanged = true;
+        }
+
+        protected override bool OnItemPropertyChanged(T item, string propertyName)
+        {
+            if (Source is IList list)
+            {
+                if (FirstIndex > 0 || LastIndex + 1 < Source.Count)
+                {
+                    var i = list.IndexOf(item);
+                    if (i < FirstIndex || LastIndex < i)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return base.OnItemPropertyChanged(item, propertyName);
+        }
+
+        #region CollectionChanged
+
+        private bool _CollectionChanged;
+
+        protected bool CollectionChanged
+        {
+            get => _CollectionChanged;
+            private set => SetProperty(ref _CollectionChanged, value);
+        }
+
+        #endregion CollectionChanged
+
+        #region Range
+
+        protected int FirstIndex { get; private set; } = -1;
+        protected int LastIndex { get; private set; } = -1;
+
+        protected bool SetRange(int first, int last)
+        {
+            first = Math.Max(0, first);
+            last = Math.Min(last, Source?.Count ?? 0 - 1);
+            if (last < 0 || first > last)
+            {
+                first = last = -1;
+            }
+            if (FirstIndex != first || LastIndex != last)
+            {
+                FirstIndex = first;
+                LastIndex = last;
+
+                return true;
+            }
+            return false;
+        }
+
+        #endregion Range
+
+        protected abstract bool HasClientSize { get; }
+
+        protected abstract bool SetScrollInfo(ScrollInfo info);
+
+        // protected float Local
+
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
                 await JS.AttachWindowResize(this).ConfigureAwait(false);
                 await JS.AttachElementScroll(this, Element, ItemSelector).ConfigureAwait(false);
+
+                if (CollectionChanged)
+                {
+                    _CollectionChanged = false;
+                    if (!HasClientSize)
+                    {
+                        var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
+                        if (SetScrollInfo(si))
+                        {
+                            StateHasChanged();
+                        }
+                    }
+                }
             }
         }
 
@@ -103,8 +215,15 @@ namespace Shipwreck.BlazorFramework.Components
         }
 
         [JSInvokable]
-        public void OnWindowResized()
-            => OnResized();
+        public async void OnWindowResized()
+        {
+            var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
+
+            if (SetScrollInfo(si))
+            {
+                StateHasChanged();
+            }
+        }
 
         [JSInvokable]
         public void OnElementScroll(string jsonPanelScrollInfo)
@@ -113,10 +232,6 @@ namespace Shipwreck.BlazorFramework.Components
             _MinItemWidth = si.MinWidth > 0 ? si?.MinWidth : null;
             _MinItemHeight = si.MinHeight > 0 ? si?.MinHeight : null;
             OnScrolled(si);
-        }
-
-        public virtual void OnResized()
-        {
         }
 
         public virtual void OnScrolled(ItemsControlScrollInfo scrollInfo)

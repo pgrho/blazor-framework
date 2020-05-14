@@ -6,13 +6,21 @@ namespace Shipwreck.BlazorFramework.Components
     public partial class StackPanel<T> : ItemsControl<T>
         where T : class
     {
-        public override async void OnResized()
-        {
-            var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
+        protected override bool HasClientSize => _ClientHeight > 0;
 
-            Console.WriteLine("OnWindowResized: {0}*{1}", si.ClientWidth, si.ClientHeight);
+        protected override bool SetScrollInfo(ScrollInfo info)
+        {
+            _ClientHeight = info.ClientHeight;
+
+            var r = Math.Max((int)Math.Ceiling(_ClientHeight / (ItemHeight + ItemMarginY)), 1);
+
+            return SetRange(0, r - 1);
         }
 
+        float _ClientHeight;
+        float _ScrollTop;
+        float _ScrollHeight;
+         
         public override void OnScrolled(ItemsControlScrollInfo scrollInfo)
         {
             Console.WriteLine(
