@@ -2,6 +2,6 @@
 {
     public interface IScrollEventListener : IWindowResizeEventListener
     {
-        void OnElementScroll(string jsonPanelScrollInfo);
+        void OnElementScroll(string jsonScrollInfo);
     }
 }

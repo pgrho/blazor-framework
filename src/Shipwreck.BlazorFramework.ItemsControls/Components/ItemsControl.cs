@@ -176,9 +176,15 @@ namespace Shipwreck.BlazorFramework.Components
 
         protected abstract bool HasClientSize { get; }
 
-        protected abstract bool SetScrollInfo(ScrollInfo info);
+        protected abstract bool SetRange(ScrollInfo info, int firstIndex);
+
+        protected abstract bool SetScroll(ItemsControlScrollInfo info);
 
         // protected float Local
+
+        private bool _IsScrolling;
+
+        protected abstract ValueTask ScrollAsync();
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -190,13 +196,12 @@ namespace Shipwreck.BlazorFramework.Components
                 if (CollectionChanged)
                 {
                     _CollectionChanged = false;
-                    if (!HasClientSize)
+                    var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
+                    if (SetRange(si, Math.Max(FirstIndex, 0)))
                     {
-                        var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
-                        if (SetScrollInfo(si))
-                        {
-                            StateHasChanged();
-                        }
+                        _IsScrolling = true;
+                        await ScrollAsync().ConfigureAwait(false);
+                        _IsScrolling = false;
                     }
                 }
             }
@@ -219,23 +224,32 @@ namespace Shipwreck.BlazorFramework.Components
         {
             var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
 
-            if (SetScrollInfo(si))
+            if (SetRange(si, Math.Max(FirstIndex, 0)))
             {
-                StateHasChanged();
+                _IsScrolling = true;
+                await ScrollAsync().ConfigureAwait(false);
+                _IsScrolling = false;
             }
         }
 
         [JSInvokable]
-        public void OnElementScroll(string jsonPanelScrollInfo)
+        public async void OnElementScroll(string jsonScrollInfo)
         {
-            var si = JsonSerializer.Deserialize<ItemsControlScrollInfo>(jsonPanelScrollInfo);
+            if (_IsScrolling)
+            {
+                return;
+            }
+
+            var si = JsonSerializer.Deserialize<ItemsControlScrollInfo>(jsonScrollInfo);
             _MinItemWidth = si.MinWidth > 0 ? si?.MinWidth : null;
             _MinItemHeight = si.MinHeight > 0 ? si?.MinHeight : null;
-            OnScrolled(si);
-        }
 
-        public virtual void OnScrolled(ItemsControlScrollInfo scrollInfo)
-        {
+            if (SetScroll(si))
+            {
+                _IsScrolling = true;
+                await ScrollAsync().ConfigureAwait(false);
+                _IsScrolling = false;
+            }
         }
 
         public void Dispose()

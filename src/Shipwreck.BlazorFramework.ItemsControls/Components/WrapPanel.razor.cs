@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Shipwreck.BlazorFramework.JSInterop;
 
 namespace Shipwreck.BlazorFramework.Components
@@ -8,40 +9,71 @@ namespace Shipwreck.BlazorFramework.Components
     {
         protected override bool HasClientSize => _ClientWidth > 0 && _ClientHeight > 0;
 
-        protected override bool SetScrollInfo(ScrollInfo info)
+        protected override bool SetRange(ScrollInfo info, int firstIndex)
         {
-            _ClientWidth = info.ClientWidth;
-            _ClientHeight = info.ClientHeight;
-
-            var c = Math.Max((int)Math.Floor(_ClientWidth / (ItemWidth + ItemMarginX)), 1);
+            var c = GetColumns(info);
 
             _Columns = c;
 
             var r = Math.Max((int)Math.Ceiling(_ClientHeight / (ItemHeight + ItemMarginY)), 1);
 
-            Console.WriteLine("SetRange: {0} * {1}", c, r);
-
-            return SetRange(0, c * r - 1);
+            return SetRange(firstIndex, firstIndex + c * r - 1);
         }
 
-        int _Columns;
-
-        float _ClientWidth;
-        float _ClientHeight;
-        float _ScrollLeft;
-        float _ScrollTop;
-        float _ScrollWidth;
-        float _ScrollHeight;
-
-        public override void OnScrolled(ItemsControlScrollInfo scrollInfo)
+        private int GetColumns(ScrollInfo info)
         {
-            Console.WriteLine(
-                "OnScrolled: {0} {1} {2} {3} {4}",
-                scrollInfo.Viewport,
-                scrollInfo.First,
-                scrollInfo.Last,
-                scrollInfo.MinWidth,
-                scrollInfo.MinHeight);
+            _ClientWidth = info.ClientWidth;
+            _ClientHeight = info.ClientHeight;
+
+            var c = Math.Max((int)Math.Floor(_ClientWidth / (ItemWidth + ItemMarginX)), 1);
+            return c;
         }
+
+        protected override bool SetScroll(ItemsControlScrollInfo info)
+        {
+            int fi;
+            float ft;
+            if (info.First != null)
+            {
+                ft = info.Viewport.ScrollTop - info.First.Top;
+
+                _Columns = GetColumns(info.Viewport);
+
+                var c = Math.Max(1, (info.First.LastIndex + 1 - info.First.FirstIndex) / _Columns);
+                if (c == 1)
+                {
+                    fi = info.First.FirstIndex;
+                }
+                else
+                {
+                    var li = (int)Math.Floor(ft * c / info.First.Height);
+                    fi = info.First.FirstIndex + li;
+                    ft -= info.First.Height * li / c;
+                }
+            }
+            else
+            {
+                fi = 0;
+                ft = 0;
+            }
+
+            _ScrollTopInFirstItem = ft;
+
+            return SetRange(info.Viewport, fi);
+        }
+
+        protected override ValueTask ScrollAsync()
+        {
+            StateHasChanged();
+
+            return JS.ScrollTo(Element, 0, Math.Max(0, (ItemHeight + ItemMarginY) * (FirstIndex / Math.Max(1, _Columns)) + _ScrollTopInFirstItem), false);
+        }
+
+        private float _ScrollTopInFirstItem;
+
+        private int _Columns;
+
+        private float _ClientWidth;
+        private float _ClientHeight;
     }
 }

@@ -13,6 +13,17 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
     }
     const WR = '__ItemsControl__onResize';
     const ES = '__ItemsControl__onScroll';
+
+    export function scrollTo(element: HTMLElement, left: number, top: number, smooth: boolean) {
+        if (element) {
+            element.scrollTo({
+                left,
+                top,
+                behavior: smooth ? 'smooth' : 'auto'
+            });
+        }
+    }
+
     export function attachWindowResize(obj: IHasWindowResize) {
         if (obj && !obj[WR]) {
             const h = async () => {
@@ -47,13 +58,10 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
     export function attachElementScroll(element: HTMLElement, obj: IHasElementScroll, itemSelector: string) {
         if (obj && !obj[ES]) {
             const h = async () => {
-                const s = new Date().getTime();
                 try {
                     await obj.invokeMethodAsync('OnElementScroll', JSON.stringify(__itemsControlInfo(element, itemSelector)));
                 } catch (ex) {
                     console.log(ex);
-                } finally {
-                    console.log(`Processed onscroll in ${new Date().getTime() - s}ms`);
                 }
             };
             obj[ES] = h;
@@ -90,7 +98,9 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
                 && e.offsetTop <= vb) {
                 const sf = parseInt(e.getAttribute('data-itemindex'), 10);
                 if (sf >= 0) {
-                    const sl = parseInt(e.getAttribute('data-itemlastindex'), 10) || sf;
+                    const la = e.getAttribute('data-itemlastindex');
+
+                    const sl = la ? parseInt(la, 10) : sf;
 
                     b.FirstIndex = sf;
                     b.LastIndex = sl;
@@ -102,7 +112,7 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
                         max = b;
                     }
 
-                    if (sf === sl) {
+                    if (!la) {
                         minWidth = Math.min(minWidth, b.Width);
                         minHeight = Math.min(minHeight, b.Height);
                     }

@@ -12,6 +12,10 @@ namespace Shipwreck.BlazorFramework.JSInterop
                 "Shipwreck.BlazorFramework.ItemsControls.attachWindowResize",
                 DotNetObjectReference.Create(listener));
 
+        public static ValueTask ScrollTo(this IJSRuntime js, ElementReference element, float left, float top, bool isSmooth)
+            => js.InvokeVoidAsync(
+                "Shipwreck.BlazorFramework.ItemsControls.scrollTo", element, left, top, isSmooth);
+
         public static ValueTask DetachWindowResize(this IJSRuntime js, IWindowResizeEventListener listener)
             => js.InvokeVoidAsync(
                 "Shipwreck.BlazorFramework.ItemsControls.detachWindowResize",

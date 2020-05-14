@@ -33,7 +33,7 @@
         if (FirstIndex > 0)
         {
             <div data-itemindex="0"
-                 data-itemlastindex="@(FirstIndex - 1)" style="margin:0;padding:0;background-color:yellow; height:@(FirstIndex * ItemHeight / _Columns)px;"></div>
+                 data-itemlastindex="@(FirstIndex - 1)" style="margin:0;padding:0;background-color:yellow; height:@(FirstIndex * (ItemHeight + ItemMarginY) / _Columns)px;"></div>
         }
         if (FirstIndex >= 0)
         {
@@ -50,7 +50,7 @@
         if (LastIndex + 1 < Source.Count)
         {
             <div data-itemindex="@(LastIndex + 1)"
-                 data-itemlastindex="@(Source.Count - 1)" style="margin:0;padding:0;background-color:green; height:@((Source.Count - LastIndex) * ItemHeight / _Columns)px;width:100%;"></div>
+                 data-itemlastindex="@(Source.Count - 1)" style="margin:0;padding:0;background-color:green; height:@((Source.Count - LastIndex) * (ItemHeight + ItemMarginY) / _Columns)px;width:100%;"></div>
         }
     }
 </div>
