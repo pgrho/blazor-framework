@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Shipwreck.BlazorFramework.JSInterop;
 
 namespace Shipwreck.BlazorFramework.Components
@@ -65,16 +66,18 @@ namespace Shipwreck.BlazorFramework.Components
             {
                 ft = info.Viewport.ScrollTop - info.First.Top;
 
-                var c = Math.Max(1, (info.First.LastIndex + 1 - info.First.FirstIndex) / ColumnCount);
-                if (c == 1)
+                var w = info.First.LastIndex + 1 - info.First.FirstIndex;
+                if (w == 1)
                 {
                     fi = info.First.FirstIndex;
                 }
                 else
                 {
-                    var li = Math.Max(0, (int)Math.Floor(ft * c / info.First.Height));
-                    fi = info.First.FirstIndex + li;
-                    ft -= info.First.Height * li / c;
+                    var rows = (w - 1) / ColumnCount + 1;
+                    var rh = info.First.Height / rows;
+                    var ri = Math.Min(Math.Max(0, (int)Math.Floor(ft / rh)), rows - 1);
+                    fi = info.First.FirstIndex + ri * ColumnCount;
+                    ft -= rh * ri;
                 }
             }
             else
@@ -85,5 +88,24 @@ namespace Shipwreck.BlazorFramework.Components
 
             UpdateRange(info.Viewport, fi, ft);
         }
+
+        #region BuildRenderTree
+
+        [Parameter]
+        public string TagName { get; set; }
+
+        protected override string GetTagName() => TagName ?? base.GetTagName();
+
+        protected override int RenderFirstPaddingSequence => RenderPaddingCoreSequence;
+
+        protected override int RenderLastPaddingSequence => RenderPaddingCoreSequence;
+
+        protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence)
+            => RenderPaddingCore(builder, ref sequence, 0, FirstIndex - 1, Math.Max(1, FirstIndex / ColumnCount) * ItemHeight);
+
+        protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence)
+            => RenderPaddingCore(builder, ref sequence, LastIndex + 1, Source.Count - 1, (Math.Max(1, (Source.Count - LastIndex) / ColumnCount)) * ItemHeight);
+
+        #endregion BuildRenderTree
     }
 }

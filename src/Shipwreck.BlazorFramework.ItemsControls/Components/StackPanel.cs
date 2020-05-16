@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Shipwreck.BlazorFramework.JSInterop;
 
 namespace Shipwreck.BlazorFramework.Components
@@ -62,5 +62,24 @@ namespace Shipwreck.BlazorFramework.Components
 
             SetVisibleRange(firstIndex, firstIndex + r - 1, localY);
         }
+
+        #region BuildRenderTree
+
+        [Parameter]
+        public string TagName { get; set; }
+
+        protected override string GetTagName() => TagName ?? base.GetTagName();
+
+        protected override int RenderFirstPaddingSequence => RenderPaddingCoreSequence;
+
+        protected override int RenderLastPaddingSequence => RenderPaddingCoreSequence;
+
+        protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence)
+            => RenderPaddingCore(builder, ref sequence, 0, FirstIndex - 1, FirstIndex * ItemHeight);
+
+        protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence)
+            => RenderPaddingCore(builder, ref sequence, LastIndex + 1, Source.Count - 1, (Source.Count - LastIndex) * ItemHeight);
+
+        #endregion BuildRenderTree
     }
 }

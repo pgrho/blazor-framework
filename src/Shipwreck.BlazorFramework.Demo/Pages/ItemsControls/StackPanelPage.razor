@@ -1,7 +1,38 @@
 ﻿@page "/itemsControls/stackPanel"
+<style>
+    .scroller {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        top: 16px;
+        bottom: 16px;
+        overflow-y: scroll;
+        /*      -webkit-overflow-scrolling: touch;*/
+    }
+
+    .scroller-item {
+        height: 96px;
+        margin: 16px;
+        box-sizing: border-box;
+        border: 1px solid #888;
+        border-radius: 4px;
+        color: #ccc;
+        overflow: hidden;
+        font-size: 32px;
+        user-select: none;
+    }
+</style>
 <StackPanel T="Item"
             Source="@_Items"
-            DefaultItemHeight="112" />
+            DefaultItemHeight="112"
+            class="scroller">
+    <ItemTemplate Context="context">
+        <div class="scroller-item"
+             data-itemindex="@context.Index">
+            @context.Index: @context.Item.GetHashCode()
+        </div>
+    </ItemTemplate>
+</StackPanel>
 @code
     {
     class Item

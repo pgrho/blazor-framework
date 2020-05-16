@@ -1,8 +1,42 @@
 ﻿@page "/itemsControls/wrapPanel"
+<style>
+    .scroller {
+        display: flex;
+        flex-flow: row wrap;
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        top: 16px;
+        bottom: 16px;
+        overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .scroller-item {
+        width: 192px;
+        height: 128px;
+        margin: 16px;
+        box-sizing: border-box;
+        border: 1px solid #888;
+        border-radius: 4px;
+        color: #ccc;
+        overflow: hidden;
+        font-size: 32px;
+        user-select: none;
+    }
+</style>
 <WrapPanel T="Item"
            Source="@_Items"
            DefaultItemWidth="208"
-           DefaultItemHeight="144" />
+           DefaultItemHeight="144"
+           class="scroller">
+    <ItemTemplate Context="context">
+        <div class="scroller-item"
+             data-itemindex="@context.Index">
+            @context.Index: @context.Item.GetHashCode()
+        </div>
+    </ItemTemplate>
+</WrapPanel>
 @code
 {
     class Item

@@ -110,7 +110,7 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
 
                         const nst = b.Top + localY;
 
-                        if (Math.abs(nst - element.scrollTop) > 16) {
+                        if (Math.abs(nst - element.scrollTop) * 2 > b.Height) {
 
                             element.scrollTo({
                                 left: 0,
