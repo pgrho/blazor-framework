@@ -5,6 +5,7 @@
     <RootNamespace>Shipwreck.BlazorFramework</RootNamespace>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Virtualized list components for Blazor WebAssembly.</Description>
   </PropertyGroup>
 
   <ItemGroup>
