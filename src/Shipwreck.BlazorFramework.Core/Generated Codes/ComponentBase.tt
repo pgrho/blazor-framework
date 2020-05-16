@@ -10,14 +10,14 @@ using Shipwreck.BlazorFramework.ViewModels;
 foreach (var g in new [] {
     new { NS = "Shipwreck.BlazorFramework.Components", T = "BindableComponentBase" },
     new { NS = "Shipwreck.BlazorFramework.Components", T = "BindableLayoutComponentBase" },
-    // new { NS = "Shipwreck.BlazorFramework.ViewModels", T = "StatefulModel" },
+    new { NS = "Shipwreck.BlazorFramework.ViewModels", T = "StatefulModel" },
     // new { NS = "Shipwreck.BlazorFramework.ViewModels", T = "StatefulCollection<T>" },
 }.GroupBy(e => e.NS))
 {
     var isComponent = g.Key.StartsWith("Shipwreck.BlazorFramework.Components");
-    var commonArgs = isComponent ? ", Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true" : ", [CallerMemberName]string propertyName = null, Action onChanged = null";
-    var commonApply = isComponent ? ", onChanged, propertyName, render: render" : ", propertyName, onChanged";
-    var notification = isComponent ? "if (propertyName != null) RaisePropertyChanged(propertyName, render)" : "if (propertyName != null) RaisePropertyChanged(propertyName)";
+    var commonArgs = isComponent ? ", Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true" : ", [CallerMemberName]string propertyName = null, Action onChanged = null";
+    var commonApply = isComponent ? ", onChanged, propertyName, shouldNotify: shouldNotify" : ", propertyName, onChanged";
+    var notification = isComponent ? "if (propertyName != null) RaisePropertyChanged(propertyName, shouldNotify)" : "if (propertyName != null) RaisePropertyChanged(propertyName)";
 #>
 namespace <#= g.Key #>
 {
@@ -65,9 +65,9 @@ foreach (var v in new [] { "byte", "ushort", "uint", "ulong" })
 if (isComponent)
 {
 #>
-        protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null, bool render = true)
+        protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
-            if (render) StateHasChanged();
+            if (shouldNotify) StateHasChanged();
         }
 <#
 }

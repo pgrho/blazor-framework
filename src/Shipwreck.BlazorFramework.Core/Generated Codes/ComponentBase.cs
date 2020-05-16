@@ -8,110 +8,163 @@ namespace Shipwreck.BlazorFramework.Components
 {
     partial class BindableComponentBase
     {
-        protected bool SetProperty(ref string field, string value, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetProperty(ref string field, string value, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             if (value != field)
             {
                 field = value;
                 onChanged?.Invoke();
-                if (propertyName != null) RaisePropertyChanged(propertyName, render);
+                if (propertyName != null) RaisePropertyChanged(propertyName, shouldNotify);
                 return true;
             }
             return false;
         }
 
-        protected bool SetProperty<TValue>(ref TValue field, TValue value, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetProperty<TValue>(ref TValue field, TValue value, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             if (!((field as IEquatable<TValue>)?.Equals(value) ?? Equals(field, value)))
             {
                 field = value;
                 onChanged?.Invoke();
-                if (propertyName != null) RaisePropertyChanged(propertyName, render);
+                if (propertyName != null) RaisePropertyChanged(propertyName, shouldNotify);
                 return true;
             }
             return false;
         }
 
-        protected bool SetFlagProperty(ref byte field, byte flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetFlagProperty(ref byte field, byte flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             var nv = (byte)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, onChanged, propertyName, render: render);
+            return SetProperty(ref field, nv, onChanged, propertyName, shouldNotify: shouldNotify);
         }
 
-        protected bool SetFlagProperty(ref ushort field, ushort flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetFlagProperty(ref ushort field, ushort flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             var nv = (ushort)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, onChanged, propertyName, render: render);
+            return SetProperty(ref field, nv, onChanged, propertyName, shouldNotify: shouldNotify);
         }
 
-        protected bool SetFlagProperty(ref uint field, uint flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetFlagProperty(ref uint field, uint flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             var nv = (uint)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, onChanged, propertyName, render: render);
+            return SetProperty(ref field, nv, onChanged, propertyName, shouldNotify: shouldNotify);
         }
 
-        protected bool SetFlagProperty(ref ulong field, ulong flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetFlagProperty(ref ulong field, ulong flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             var nv = (ulong)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, onChanged, propertyName, render: render);
+            return SetProperty(ref field, nv, onChanged, propertyName, shouldNotify: shouldNotify);
         }
-        protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null, bool render = true)
+        protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
-            if (render) StateHasChanged();
+            if (shouldNotify) StateHasChanged();
         }
     }
     partial class BindableLayoutComponentBase
     {
-        protected bool SetProperty(ref string field, string value, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetProperty(ref string field, string value, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             if (value != field)
             {
                 field = value;
                 onChanged?.Invoke();
-                if (propertyName != null) RaisePropertyChanged(propertyName, render);
+                if (propertyName != null) RaisePropertyChanged(propertyName, shouldNotify);
                 return true;
             }
             return false;
         }
 
-        protected bool SetProperty<TValue>(ref TValue field, TValue value, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetProperty<TValue>(ref TValue field, TValue value, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             if (!((field as IEquatable<TValue>)?.Equals(value) ?? Equals(field, value)))
             {
                 field = value;
                 onChanged?.Invoke();
-                if (propertyName != null) RaisePropertyChanged(propertyName, render);
+                if (propertyName != null) RaisePropertyChanged(propertyName, shouldNotify);
                 return true;
             }
             return false;
         }
 
-        protected bool SetFlagProperty(ref byte field, byte flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetFlagProperty(ref byte field, byte flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             var nv = (byte)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, onChanged, propertyName, render: render);
+            return SetProperty(ref field, nv, onChanged, propertyName, shouldNotify: shouldNotify);
         }
 
-        protected bool SetFlagProperty(ref ushort field, ushort flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetFlagProperty(ref ushort field, ushort flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             var nv = (ushort)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, onChanged, propertyName, render: render);
+            return SetProperty(ref field, nv, onChanged, propertyName, shouldNotify: shouldNotify);
         }
 
-        protected bool SetFlagProperty(ref uint field, uint flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetFlagProperty(ref uint field, uint flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             var nv = (uint)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, onChanged, propertyName, render: render);
+            return SetProperty(ref field, nv, onChanged, propertyName, shouldNotify: shouldNotify);
         }
 
-        protected bool SetFlagProperty(ref ulong field, ulong flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool render = true)
+        protected bool SetFlagProperty(ref ulong field, ulong flag, bool hasFlag, Action onChanged = null, [CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             var nv = (ulong)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, onChanged, propertyName, render: render);
+            return SetProperty(ref field, nv, onChanged, propertyName, shouldNotify: shouldNotify);
         }
-        protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null, bool render = true)
+        protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
-            if (render) StateHasChanged();
+            if (shouldNotify) StateHasChanged();
+        }
+    }
+}
+namespace Shipwreck.BlazorFramework.ViewModels
+{
+    partial class StatefulModel
+    {
+        protected bool SetProperty(ref string field, string value, [CallerMemberName]string propertyName = null, Action onChanged = null)
+        {
+            if (value != field)
+            {
+                field = value;
+                onChanged?.Invoke();
+                if (propertyName != null) RaisePropertyChanged(propertyName);
+                return true;
+            }
+            return false;
+        }
+
+        protected bool SetProperty<TValue>(ref TValue field, TValue value, [CallerMemberName]string propertyName = null, Action onChanged = null)
+        {
+            if (!((field as IEquatable<TValue>)?.Equals(value) ?? Equals(field, value)))
+            {
+                field = value;
+                onChanged?.Invoke();
+                if (propertyName != null) RaisePropertyChanged(propertyName);
+                return true;
+            }
+            return false;
+        }
+
+        protected bool SetFlagProperty(ref byte field, byte flag, bool hasFlag, [CallerMemberName]string propertyName = null, Action onChanged = null)
+        {
+            var nv = (byte)(hasFlag ? (field | flag) : (field & ~flag));
+            return SetProperty(ref field, nv, propertyName, onChanged);
+        }
+
+        protected bool SetFlagProperty(ref ushort field, ushort flag, bool hasFlag, [CallerMemberName]string propertyName = null, Action onChanged = null)
+        {
+            var nv = (ushort)(hasFlag ? (field | flag) : (field & ~flag));
+            return SetProperty(ref field, nv, propertyName, onChanged);
+        }
+
+        protected bool SetFlagProperty(ref uint field, uint flag, bool hasFlag, [CallerMemberName]string propertyName = null, Action onChanged = null)
+        {
+            var nv = (uint)(hasFlag ? (field | flag) : (field & ~flag));
+            return SetProperty(ref field, nv, propertyName, onChanged);
+        }
+
+        protected bool SetFlagProperty(ref ulong field, ulong flag, bool hasFlag, [CallerMemberName]string propertyName = null, Action onChanged = null)
+        {
+            var nv = (ulong)(hasFlag ? (field | flag) : (field & ~flag));
+            return SetProperty(ref field, nv, propertyName, onChanged);
         }
     }
 }
