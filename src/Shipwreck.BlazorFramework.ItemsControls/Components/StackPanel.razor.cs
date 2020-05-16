@@ -8,6 +8,8 @@ namespace Shipwreck.BlazorFramework.Components
     public partial class StackPanel<T> : ItemsControl<T>
         where T : class
     {
+        protected override int ColumnCount => 1;
+
         #region ItemHeight
 
         private float _DefaultItemHeight = 100;
@@ -56,20 +58,9 @@ namespace Shipwreck.BlazorFramework.Components
 
         protected override void UpdateRange(ScrollInfo info, int firstIndex, float localY)
         {
-            var _ClientHeight = info.ClientHeight;
-
-            var r = Math.Max((int)Math.Ceiling((_ClientHeight + localY) / ItemHeight), 1);
-
-            Console.WriteLine($"ClientHeight={_ClientHeight}, ItemHeight={ItemHeight}, localY={localY}, rows={r}");
+            var r = Math.Max((int)Math.Ceiling((info.ClientHeight + localY) / ItemHeight), 1);
 
             SetVisibleRange(firstIndex, firstIndex + r - 1, localY);
-        }
-
-
-        protected override ValueTask ScrollAsync(int firstIndex, float localY)
-        {
-            return JS.scrollToItem(Element, ItemSelector, firstIndex, localY, 1, false);
-            //  return JS.ScrollTo(Element, 0, Math.Max(0, (ItemHeight + ItemMargin) * firstIndex + localY), false);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Shipwreck.BlazorFramework.JSInterop;
 
@@ -8,6 +7,12 @@ namespace Shipwreck.BlazorFramework.Components
     public partial class WrapPanel<T> : ItemsControl<T>
         where T : class
     {
+        protected override int ColumnCount => _Columns;
+        private int _Columns = 1;
+
+        private int SetColumnCount(ScrollInfo info)
+            => _Columns = Math.Max((int)Math.Floor(info.ClientWidth / ItemWidth), 1);
+
         #region ItemWidth
 
         private float _DefaultItemWidth = 100;
@@ -40,32 +45,18 @@ namespace Shipwreck.BlazorFramework.Components
 
         #endregion ItemHeight
 
-
-
         protected override void UpdateRange(ScrollInfo info, int firstIndex, float localY)
         {
-            var _ClientHeight = info.ClientHeight;
-            var c = GetColumns(info);
+            SetColumnCount(info);
 
-            _Columns = c;
+            var r = Math.Max((int)Math.Ceiling((info.ClientHeight + localY) / ItemHeight), 1);
 
-            var r = Math.Max((int)Math.Ceiling((_ClientHeight + localY) / ItemHeight), 1);
-
-            Console.WriteLine($"ClientHeight={_ClientHeight}, ItemHeight={ItemHeight}, localY={localY}, rows={r}");
-
-            SetVisibleRange(firstIndex, firstIndex + c * r - 1, localY);
-        }
-
-        private int GetColumns(ScrollInfo info)
-        {
-            var _ClientWidth = info.ClientWidth;
-
-            var c = Math.Max((int)Math.Floor(_ClientWidth / ItemWidth), 1);
-            return c;
+            SetVisibleRange(firstIndex, firstIndex + ColumnCount * r - 1, localY);
         }
 
         protected override void SetScroll(ItemsControlScrollInfo info)
         {
+            SetColumnCount(info.Viewport);
             _MinItemWidth = info.MinWidth > 0 ? info?.MinWidth : null;
             _MinItemHeight = info.MinHeight > 0 ? info?.MinHeight : null;
             int fi;
@@ -74,16 +65,14 @@ namespace Shipwreck.BlazorFramework.Components
             {
                 ft = info.Viewport.ScrollTop - info.First.Top;
 
-                _Columns = GetColumns(info.Viewport);
-
-                var c = Math.Max(1, (info.First.LastIndex + 1 - info.First.FirstIndex) / _Columns);
+                var c = Math.Max(1, (info.First.LastIndex + 1 - info.First.FirstIndex) / ColumnCount);
                 if (c == 1)
                 {
                     fi = info.First.FirstIndex;
                 }
                 else
                 {
-                    var li = (int)Math.Floor(ft * c / info.First.Height);
+                    var li = Math.Max(0, (int)Math.Floor(ft * c / info.First.Height));
                     fi = info.First.FirstIndex + li;
                     ft -= info.First.Height * li / c;
                 }
@@ -96,13 +85,5 @@ namespace Shipwreck.BlazorFramework.Components
 
             UpdateRange(info.Viewport, fi, ft);
         }
-
-        protected override ValueTask ScrollAsync(int firstIndex, float localY)
-        {
-            return JS.scrollToItem(Element, ItemSelector, firstIndex, localY, _Columns, false);
-            //return JS.ScrollTo(Element, 0, Math.Max(0, (ItemHeight + ItemMarginY) * (firstIndex / Math.Max(1, _Columns)) + localY), false);
-        }
-
-        private int _Columns;
     }
 }

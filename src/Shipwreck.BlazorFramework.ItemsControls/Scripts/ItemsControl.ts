@@ -83,6 +83,7 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
                 const e = items[i] as HTMLElement;
 
                 const sf = parseInt(e.getAttribute('data-itemindex'), 10);
+
                 if (sf <= index) {
                     const la = e.getAttribute('data-itemlastindex');
 
@@ -91,23 +92,32 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
 
                         if (index <= sl) {
                             const b = __offsetInfo(e);
+                            const nst = b.Top + Math.floor((index - sf) / column) * b.Height + localY;
 
-                            element.scrollTo({
-                                left: 0,
-                                top: b.Top + Math.floor((index - sf) / column) * b.Height + localY,
-                                behavior: smooth ? 'smooth' : 'auto'
-                            });
+                            if (Math.abs(nst - element.scrollTop) > 16) {
+
+                                element.scrollTo({
+                                    left: 0,
+                                    top: nst,
+                                    behavior: smooth ? 'smooth' : 'auto'
+                                });
+                            }
 
                             return;
                         }
                     } else if (sf === index) {
                         const b = __offsetInfo(e);
 
-                        element.scrollTo({
-                            left: 0,
-                            top: b.Top + localY,
-                            behavior: smooth ? 'smooth' : 'auto'
-                        });
+                        const nst = b.Top + localY;
+
+                        if (Math.abs(nst - element.scrollTop) > 16) {
+
+                            element.scrollTo({
+                                left: 0,
+                                top: nst,
+                                behavior: smooth ? 'smooth' : 'auto'
+                            });
+                        }
 
                         return;
                     }

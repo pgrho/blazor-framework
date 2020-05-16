@@ -95,6 +95,7 @@ namespace Shipwreck.BlazorFramework.Components
 
         protected int FirstIndex { get; private set; } = -1;
         protected int LastIndex { get; private set; } = -1;
+        protected abstract int ColumnCount { get; }
 
         private bool _IsScrolling;
 
@@ -124,9 +125,11 @@ namespace Shipwreck.BlazorFramework.Components
         #endregion Range
 
         protected abstract void SetScroll(ItemsControlScrollInfo info);
+
         protected abstract void UpdateRange(ScrollInfo info, int firstIndex, float localY);
 
-        protected abstract ValueTask ScrollAsync(int firstIndex, float localY);
+        protected virtual ValueTask ScrollAsync(int firstIndex, float localY)
+            => JS.scrollToItem(Element, ItemSelector, firstIndex, localY, ColumnCount, false);
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -144,23 +147,15 @@ namespace Shipwreck.BlazorFramework.Components
             }
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (IsDisposed)
-            {
-                if (disposing && JS != null)
-                {
-                    JS.DetachWindowResize(this);
-                }
-            }
-            IsDisposed = true;
-        }
-
         [JSInvokable]
         public async void OnWindowResized()
         {
-            var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
-            UpdateRange(si, Math.Max(FirstIndex, 0), 0);
+            try
+            {
+                var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
+                UpdateRange(si, Math.Max(FirstIndex, 0), 0);
+            }
+            catch { }
         }
 
         [JSInvokable]
@@ -178,5 +173,17 @@ namespace Shipwreck.BlazorFramework.Components
 
         public void Dispose()
             => Dispose(true);
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+            {
+                if (disposing && JS != null)
+                {
+                    JS.DetachWindowResize(this);
+                }
+            }
+            IsDisposed = true;
+        }
     }
 }
