@@ -117,9 +117,7 @@ namespace Shipwreck.BlazorFramework.Components
         protected int LastIndex { get; private set; } = -1;
         protected abstract int ColumnCount { get; }
 
-        private bool _IsScrolling;
-
-        protected async void SetVisibleRange(int first, int last, float localY)
+        protected async void SetVisibleRange(int first, int last, float localY, bool forceScroll)
         {
             first = Math.Max(0, first);
             last = Math.Min(last, Source?.Count ?? 0 - 1);
@@ -132,27 +130,22 @@ namespace Shipwreck.BlazorFramework.Components
                 FirstIndex = first;
                 LastIndex = last;
 
-                _IsScrolling = true;
                 StateHasChanged();
-                if (first >= 0)
+                if (forceScroll && first >= 0)
                 {
                     await ScrollAsync(first, localY).ConfigureAwait(false);
                 }
-                _IsScrolling = false;
             }
         }
 
         #endregion Range
 
-        protected abstract void SetScroll(ItemsControlScrollInfo info);
+        protected abstract void SetScroll(ItemsControlScrollInfo info, bool forceScroll);
 
-        protected abstract void UpdateRange(ScrollInfo info, int firstIndex, float localY);
+        protected abstract void UpdateRange(ScrollInfo info, int firstIndex, float localY, bool forceScroll);
 
         protected virtual ValueTask ScrollAsync(int firstIndex, float localY)
-        {
-            Console.WriteLine("ScrollAsync: #{0}+{1}px", firstIndex, localY);
-            return JS.scrollToItem(Element, ItemSelector, firstIndex, localY, ColumnCount, false);
-        }
+            => JS.scrollToItem(Element, ItemSelector, firstIndex, localY, ColumnCount, false);
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -165,7 +158,8 @@ namespace Shipwreck.BlazorFramework.Components
                 {
                     _CollectionChanged = false;
                     var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
-                    UpdateRange(si, Math.Max(FirstIndex, 0), 0);
+
+                    UpdateRange(si, Math.Max(FirstIndex, 0), 0, true);
                 }
             }
         }
@@ -176,33 +170,90 @@ namespace Shipwreck.BlazorFramework.Components
             try
             {
                 var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
-                UpdateRange(si, Math.Max(FirstIndex, 0), 0);
+
+                UpdateRange(si, Math.Max(FirstIndex, 0), 0, true);
             }
             catch { }
         }
 
+        private TimeSpan _ScrollUpdateInterval = TimeSpan.FromSeconds(1);
+
+        private DateTime _ScrollStart;
+
+        protected bool IsInScrolling { get; set; }
+
         [JSInvokable]
         public void OnElementScroll(string jsonScrollInfo)
         {
-            if (_IsScrolling)
+            if (_IgnoreNextScroll)
             {
+                _IgnoreNextScroll = false;
                 return;
             }
 
             var si = JsonSerializer.Deserialize<ItemsControlScrollInfo>(jsonScrollInfo);
 
-            SetScroll(si);
+            var timestamp = DateTime.Now;
+
+            if (_ScrollStart + _ScrollUpdateInterval < timestamp)
+            {
+                _ScrollStart = timestamp;
+                IsInScrolling = true;
+
+                OnScrollStart(si);
+
+                Task.Delay(_ScrollUpdateInterval).ContinueWith(t => CheckScrollEnded());
+            }
+
+            SetScroll(si, false);
         }
+
+        private int _FirstIndexAtStart;
+        private bool _IgnoreNextScroll;
+
+        protected virtual void OnScrollStart(ItemsControlScrollInfo info)
+        {
+            _FirstIndexAtStart = FirstIndex;
+        }
+
+        protected virtual async void OnScrollEnd()
+        {
+            if (_FirstIndexAtStart < FirstIndex)
+            {
+                try
+                {
+                    var si = await JS.GetItemsControlScrollInfoAsync(Element, ItemSelector).ConfigureAwait(false);
+                    _IgnoreNextScroll = true;
+                    SetScroll(si, true);
+                }
+                catch { }
+            }
+        }
+
+        private void CheckScrollEnded()
+        {
+            if (IsInScrolling)
+            {
+                var timestamp = DateTime.Now;
+
+                if (_ScrollStart + _ScrollUpdateInterval > timestamp)
+                {
+                    Task.Delay(_ScrollUpdateInterval).ContinueWith(t => CheckScrollEnded());
+                }
+                else
+                {
+                    IsInScrolling = false;
+                    OnScrollEnd();
+                }
+            }
+        }
+
+        protected int ScrollingFirstIndex
+            => (IsInScrolling && _FirstIndexAtStart < FirstIndex ? _FirstIndexAtStart : FirstIndex);
 
         #region BuildRenderTree
 
         protected virtual string GetTagName() => "div";
-
-        protected static int RenderPaddingCoreSequence => 4;
-
-        protected abstract int RenderFirstPaddingSequence { get; }
-
-        protected abstract int RenderLastPaddingSequence { get; }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
@@ -217,19 +268,12 @@ namespace Shipwreck.BlazorFramework.Components
 
             if (Source != null)
             {
-                if (ColumnCount > 0 && FirstIndex >= ColumnCount)
-                {
-                    RenderFirstPadding(builder, ref sequence);
-                }
-                else
-                {
-                    sequence = RenderFirstPaddingSequence;
-                }
+                RenderFirstPadding(builder, ref sequence);
 
-                if (FirstIndex >= 0)
+                if (ScrollingFirstIndex >= 0)
                 {
                     var li = Math.Min(LastIndex, Source.Count - 1);
-                    for (var i = FirstIndex; i <= li; i++)
+                    for (var i = ScrollingFirstIndex; i <= li; i++)
                     {
                         builder.AddContent(sequence, ItemTemplate(new ItemTemplateContext<T>(i, Source[i])));
                     }
@@ -237,14 +281,7 @@ namespace Shipwreck.BlazorFramework.Components
 
                 sequence++;
 
-                if (ColumnCount > 0 && LastIndex + ColumnCount < Source.Count)
-                {
-                    RenderLastPadding(builder, ref sequence);
-                }
-                else
-                {
-                    sequence = RenderLastPaddingSequence;
-                }
+                RenderLastPadding(builder, ref sequence);
             }
 
             builder.CloseElement();
@@ -253,9 +290,16 @@ namespace Shipwreck.BlazorFramework.Components
         protected static void RenderPaddingCore(RenderTreeBuilder builder, ref int sequence, int firstIndex, int lastIndex, float height, string tagName = "div")
         {
             builder.OpenElement(sequence++, tagName);
-            builder.AddAttribute(sequence++, ITEM_INDEX_ATTRIBUTE, firstIndex);
-            builder.AddAttribute(sequence++, ITEM_LAST_INDEX_ATTRIBUTE, lastIndex);
-            builder.AddAttribute(sequence++, "style", "margin:0;padding:0;width:100%;" + " height:" + height + "px;opacity:0;");
+            if (height > 0)
+            {
+                builder.AddAttribute(sequence++, ITEM_INDEX_ATTRIBUTE, firstIndex);
+                builder.AddAttribute(sequence++, ITEM_LAST_INDEX_ATTRIBUTE, lastIndex);
+            }
+            else
+            {
+                sequence += 2;
+            }
+            builder.AddAttribute(sequence++, "style", "margin:0;padding:0;width:100%;" + " height:" + Math.Max(0, height) + "px;opacity:0;");
             builder.CloseElement();
         }
 

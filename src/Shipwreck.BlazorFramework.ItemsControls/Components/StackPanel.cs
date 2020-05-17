@@ -26,7 +26,7 @@ namespace Shipwreck.BlazorFramework.Components
 
         #endregion ItemHeight
 
-        protected override void SetScroll(ItemsControlScrollInfo info)
+        protected override void SetScroll(ItemsControlScrollInfo info, bool forceScroll)
         {
             _MinItemHeight = info.MinHeight > 0 ? info?.MinHeight : null;
             int fi;
@@ -53,14 +53,14 @@ namespace Shipwreck.BlazorFramework.Components
                 ft = 0;
             }
 
-            UpdateRange(info.Viewport, fi, ft);
+            UpdateRange(info.Viewport, fi, ft, forceScroll);
         }
 
-        protected override void UpdateRange(ScrollInfo info, int firstIndex, float localY)
+        protected override void UpdateRange(ScrollInfo info, int firstIndex, float localY, bool forceScroll)
         {
             var r = Math.Max((int)Math.Ceiling((info.ClientHeight + localY) / ItemHeight), 1);
 
-            SetVisibleRange(firstIndex, firstIndex + r - 1, localY);
+            SetVisibleRange(firstIndex, firstIndex + r - 1, localY, forceScroll);
         }
 
         #region BuildRenderTree
@@ -70,15 +70,23 @@ namespace Shipwreck.BlazorFramework.Components
 
         protected override string GetTagName() => TagName ?? base.GetTagName();
 
-        protected override int RenderFirstPaddingSequence => RenderPaddingCoreSequence;
-
-        protected override int RenderLastPaddingSequence => RenderPaddingCoreSequence;
-
         protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence)
-            => RenderPaddingCore(builder, ref sequence, 0, FirstIndex - 1, FirstIndex * ItemHeight);
+            => RenderPaddingCore(
+                builder,
+                ref sequence,
+                0,
+                ScrollingFirstIndex - 1,
+                Math.Max(
+                    0,
+                    ScrollingFirstIndex * ItemHeight));
 
         protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence)
-            => RenderPaddingCore(builder, ref sequence, LastIndex + 1, Source.Count - 1, (Source.Count - LastIndex) * ItemHeight);
+            => RenderPaddingCore(
+                builder,
+                ref sequence,
+                LastIndex + 1,
+                Source.Count - 1,
+                Math.Max(0, (Source.Count - LastIndex - 1) * ItemHeight));
 
         #endregion BuildRenderTree
     }
