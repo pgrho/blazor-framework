@@ -176,80 +176,13 @@ namespace Shipwreck.BlazorFramework.Components
             catch { }
         }
 
-        private TimeSpan _ScrollUpdateInterval = TimeSpan.FromSeconds(1);
-
-        private DateTime _ScrollStart;
-
-        protected bool IsInScrolling { get; set; }
-
         [JSInvokable]
         public void OnElementScroll(string jsonScrollInfo)
         {
-            if (_IgnoreNextScroll)
-            {
-                _IgnoreNextScroll = false;
-                return;
-            }
-
             var si = JsonSerializer.Deserialize<ItemsControlScrollInfo>(jsonScrollInfo);
-
-            var timestamp = DateTime.Now;
-
-            if (_ScrollStart + _ScrollUpdateInterval < timestamp)
-            {
-                _ScrollStart = timestamp;
-                IsInScrolling = true;
-
-                OnScrollStart(si);
-
-                Task.Delay(_ScrollUpdateInterval).ContinueWith(t => CheckScrollEnded());
-            }
 
             SetScroll(si, false);
         }
-
-        private int _FirstIndexAtStart;
-        private bool _IgnoreNextScroll;
-
-        protected virtual void OnScrollStart(ItemsControlScrollInfo info)
-        {
-            _FirstIndexAtStart = FirstIndex;
-        }
-
-        protected virtual async void OnScrollEnd()
-        {
-            if (_FirstIndexAtStart < FirstIndex)
-            {
-                try
-                {
-                    var si = await JS.GetItemsControlScrollInfoAsync(Element, ItemSelector).ConfigureAwait(false);
-                    _IgnoreNextScroll = true;
-                    SetScroll(si, true);
-                }
-                catch { }
-            }
-        }
-
-        private void CheckScrollEnded()
-        {
-            if (IsInScrolling)
-            {
-                var timestamp = DateTime.Now;
-
-                if (_ScrollStart + _ScrollUpdateInterval > timestamp)
-                {
-                    Task.Delay(_ScrollUpdateInterval).ContinueWith(t => CheckScrollEnded());
-                }
-                else
-                {
-                    IsInScrolling = false;
-                    OnScrollEnd();
-                }
-            }
-        }
-
-        protected int ScrollingFirstIndex
-            => (IsInScrolling && _FirstIndexAtStart < FirstIndex ? _FirstIndexAtStart : FirstIndex);
 
         #region BuildRenderTree
 
@@ -270,10 +203,10 @@ namespace Shipwreck.BlazorFramework.Components
             {
                 RenderFirstPadding(builder, ref sequence);
 
-                if (ScrollingFirstIndex >= 0)
+                if (FirstIndex >= 0)
                 {
                     var li = Math.Min(LastIndex, Source.Count - 1);
-                    for (var i = ScrollingFirstIndex; i <= li; i++)
+                    for (var i = FirstIndex; i <= li; i++)
                     {
                         builder.AddContent(sequence, ItemTemplate(new ItemTemplateContext<T>(i, Source[i])));
                     }

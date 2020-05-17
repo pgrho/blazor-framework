@@ -75,10 +75,10 @@ namespace Shipwreck.BlazorFramework.Components
                 builder,
                 ref sequence,
                 0,
-                ScrollingFirstIndex - 1,
+                FirstIndex - 1,
                 Math.Max(
                     0,
-                    ScrollingFirstIndex * ItemHeight));
+                    FirstIndex * ItemHeight));
 
         protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence)
             => RenderPaddingCore(

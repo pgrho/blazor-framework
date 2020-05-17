@@ -1,0 +1,53 @@
+﻿@page "/itemsControls/scrollableTable"
+@inherits ItemsControlPage
+<style>
+
+    .root {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        flex-flow: column nowrap;
+    }
+
+    .scrollable-table-root {
+        position: relative;
+        margin: 16px;
+        flex-grow: 100;
+        max-height: 75vh;
+    }
+</style>
+<div class="root">
+    <div>
+        <input type="number" min="1" max="65535" @bind="@Count" />
+        <input type="checkbox" @bind="@IsVirtualized" />
+        <button type="button"
+                @onclick="@(() => Apply())">
+            Apply
+        </button>
+    </div>
+    <ScrollableTable T="string"
+                     Source="@Items"
+                     DefaultItemHeight="20"
+                     HeaderHeight="calc(1.5rem)"
+                     HeaderBackground="red"
+                     class="scrollable-table-root">
+        <HeaderTemplate>
+            <tr>
+                <ScrollableTableHeaderCell style="width: 4rem">Index</ScrollableTableHeaderCell>
+                <ScrollableTableHeaderCell style="width: 8rem">ToString()</ScrollableTableHeaderCell>
+                <ScrollableTableHeaderCell style="width: 8rem">GetHashCode()</ScrollableTableHeaderCell>
+            </tr>
+        </HeaderTemplate>
+        <ItemTemplate Context="context">
+            <tr data-itemindex="@context.Index"
+                style="overflow-anchor: none">
+                <td style="width: 4rem">@context.Index</td>
+                <td style="width: 8rem">@(context.Item ?? "????")</td>
+                <td style="width: 8rem">@context.Item?.GetHashCode()</td>
+            </tr>
+        </ItemTemplate>
+    </ScrollableTable>
+</div>
