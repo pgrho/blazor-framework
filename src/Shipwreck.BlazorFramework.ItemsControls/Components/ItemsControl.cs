@@ -153,14 +153,14 @@ namespace Shipwreck.BlazorFramework.Components
             {
                 await JS.AttachWindowResize(this).ConfigureAwait(false);
                 await JS.AttachElementScroll(this, Element, ItemSelector).ConfigureAwait(false);
+            }
 
-                if (CollectionChanged)
-                {
-                    _CollectionChanged = false;
-                    var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
+            if (CollectionChanged)
+            {
+                _CollectionChanged = false;
+                var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
 
-                    UpdateRange(si, Math.Max(FirstIndex, 0), 0, true);
-                }
+                UpdateRange(si, Math.Max(FirstIndex, 0), 0, true);
             }
         }
 
@@ -299,7 +299,7 @@ namespace Shipwreck.BlazorFramework.Components
             {
                 sequence += 2;
             }
-            builder.AddAttribute(sequence++, "style", "margin:0;padding:0;width:100%;" + " height:" + Math.Max(0, height) + "px;opacity:0;");
+            builder.AddAttribute(sequence++, "style", "margin:0;padding:0;width:100%;" + " height:" + Math.Max(0, height) + "px;opacity:0;overflow-anchor: none;");
             builder.CloseElement();
         }
 

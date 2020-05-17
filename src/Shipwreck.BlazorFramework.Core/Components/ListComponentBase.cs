@@ -21,37 +21,40 @@ namespace Shipwreck.BlazorFramework.Components
                 var prev = _Source;
                 if (value != prev)
                 {
-                    if (prev != null)
+                    using (BeginUpdate())
                     {
-                        if (prev is INotifyCollectionChanged nc)
+                        if (prev != null)
                         {
-                            nc.CollectionChanged -= Source_CollectionChanged;
-                        }
-                        if (prev is INotifyPropertyChanged np)
-                        {
-                            np.PropertyChanged -= ListComponentBase_PropertyChanged;
-                        }
+                            if (prev is INotifyCollectionChanged nc)
+                            {
+                                nc.CollectionChanged -= Source_CollectionChanged;
+                            }
+                            if (prev is INotifyPropertyChanged np)
+                            {
+                                np.PropertyChanged -= ListComponentBase_PropertyChanged;
+                            }
 
-                        foreach (var e in prev)
-                        {
-                            OnItemRemoved(e);
+                            foreach (var e in prev)
+                            {
+                                OnItemRemoved(e);
+                            }
                         }
-                    }
-                    _Source = value;
-                    if (value != null)
-                    {
-                        foreach (var e in value)
+                        _Source = value;
+                        if (value != null)
                         {
-                            OnItemAdded(e);
-                        }
+                            foreach (var e in value)
+                            {
+                                OnItemAdded(e);
+                            }
 
-                        if (value is INotifyCollectionChanged nc)
-                        {
-                            nc.CollectionChanged += Source_CollectionChanged;
-                        }
-                        if (value is INotifyPropertyChanged np)
-                        {
-                            np.PropertyChanged += ListComponentBase_PropertyChanged;
+                            if (value is INotifyCollectionChanged nc)
+                            {
+                                nc.CollectionChanged += Source_CollectionChanged;
+                            }
+                            if (value is INotifyPropertyChanged np)
+                            {
+                                np.PropertyChanged += ListComponentBase_PropertyChanged;
+                            }
                         }
                     }
                 }
@@ -110,40 +113,11 @@ namespace Shipwreck.BlazorFramework.Components
 
         protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            switch (e.Action)
+            using (BeginUpdate())
             {
-                case NotifyCollectionChangedAction.Add:
-                    if (e.NewItems != null)
-                    {
-                        foreach (T m in e.NewItems)
-                        {
-                            OnItemAdded(m);
-                        }
-                        StateHasChanged();
-                        return;
-                    }
-                    break;
-
-                case NotifyCollectionChangedAction.Remove:
-                    if (e.OldItems != null)
-                    {
-                        foreach (T m in e.OldItems)
-                        {
-                            OnItemRemoved(m);
-                        }
-                        StateHasChanged();
-                        return;
-                    }
-                    break;
-
-                case NotifyCollectionChangedAction.Replace:
-                    if (e.OldItems != null)
-                    {
-                        foreach (T m in e.OldItems)
-                        {
-                            OnItemRemoved(m);
-                        }
-
+                switch (e.Action)
+                {
+                    case NotifyCollectionChangedAction.Add:
                         if (e.NewItems != null)
                         {
                             foreach (T m in e.NewItems)
@@ -153,17 +127,49 @@ namespace Shipwreck.BlazorFramework.Components
                             StateHasChanged();
                             return;
                         }
-                    }
-                    break;
+                        break;
 
-                case NotifyCollectionChangedAction.Move:
-                    StateHasChanged();
-                    return;
+                    case NotifyCollectionChangedAction.Remove:
+                        if (e.OldItems != null)
+                        {
+                            foreach (T m in e.OldItems)
+                            {
+                                OnItemRemoved(m);
+                            }
+                            StateHasChanged();
+                            return;
+                        }
+                        break;
+
+                    case NotifyCollectionChangedAction.Replace:
+                        if (e.OldItems != null)
+                        {
+                            foreach (T m in e.OldItems)
+                            {
+                                OnItemRemoved(m);
+                            }
+
+                            if (e.NewItems != null)
+                            {
+                                foreach (T m in e.NewItems)
+                                {
+                                    OnItemAdded(m);
+                                }
+                                StateHasChanged();
+                                return;
+                            }
+                        }
+                        break;
+
+                    case NotifyCollectionChangedAction.Move:
+                        StateHasChanged();
+                        return;
+                }
+
+                OnReset();
+
+                StateHasChanged();
             }
-
-            OnReset();
-
-            StateHasChanged();
         }
 
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)

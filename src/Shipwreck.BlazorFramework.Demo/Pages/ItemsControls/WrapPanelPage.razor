@@ -1,13 +1,21 @@
 ﻿@page "/itemsControls/wrapPanel"
+@inherits ItemsControlPage
 <style>
+    .root {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        flex-flow: column nowrap;
+    }
+
     .scroller {
+        margin: 16px;
+        flex-grow: 100;
         display: flex;
         flex-flow: row wrap;
-        position: absolute;
-        left: 16px;
-        right: 16px;
-        top: 16px;
-        bottom: 16px;
         overflow-y: scroll;
         -webkit-overflow-scrolling: touch;
     }
@@ -23,24 +31,28 @@
         overflow: hidden;
         font-size: 32px;
         user-select: none;
+        overflow-anchor: none;
     }
 </style>
-<WrapPanel T="Item"
-           Source="@_Items"
-           DefaultItemWidth="208"
-           DefaultItemHeight="144"
-           class="scroller">
-    <ItemTemplate Context="context">
-        <div class="scroller-item"
-             data-itemindex="@context.Index">
-            @context.Index: @context.Item.GetHashCode()
-        </div>
-    </ItemTemplate>
-</WrapPanel>
-@code
-{
-    class Item
-    {
-    }
-    private readonly Item[] _Items = Enumerable.Range(0, 500).Select(e => new Item()).ToArray();
-}
+<div class="root">
+    <div>
+        <input type="number" min="1" max="65535" @bind="@Count" />
+        <input type="checkbox" @bind="@IsVirtualized" />
+        <button type="button"
+                @onclick="@(() => Apply())">
+            Apply
+        </button>
+    </div>
+    <WrapPanel T="string"
+               Source="@Items"
+               DefaultItemWidth="208"
+               DefaultItemHeight="144"
+               class="scroller">
+        <ItemTemplate Context="context">
+            <div class="scroller-item"
+                 data-itemindex="@context.Index">
+                @context.Index: @(context.Item ?? "????")
+            </div>
+        </ItemTemplate>
+    </WrapPanel>
+</div>
