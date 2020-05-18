@@ -113,8 +113,62 @@ namespace Shipwreck.BlazorFramework.Components
 
         #region Range
 
-        protected int FirstIndex { get; private set; } = -1;
-        protected int LastIndex { get; private set; } = -1;
+        private int _FirstIndex = -1;
+        private int _LastIndex = -1;
+
+        [Parameter]
+        public int FirstIndex
+        {
+            get => _FirstIndex;
+            set
+            {
+                var v = Math.Min(Math.Max(value, 0), (Source?.Count ?? 0) - 1);
+                if (value != _FirstIndex
+                    && Source?.Count > 0
+                    && _LastIndex > _FirstIndex)
+                {
+                    _LastIndex += v - _FirstIndex;
+                    _FirstIndex = v;
+
+                    FirstIndexChanged?.Invoke(_FirstIndex);
+                    LastIndexChanged?.Invoke(_LastIndex);
+
+                    CollectionChanged = true;
+                    StateHasChanged();
+                }
+            }
+        }
+
+        [Parameter]
+        public Action<int> FirstIndexChanged { get; set; }
+
+        [Parameter]
+        public int LastIndex
+        {
+            get => _LastIndex;
+            set
+            {
+                var v = Math.Min(Math.Max(value, 0), (Source?.Count ?? 0) - 1);
+                if (v != _LastIndex
+                    && Source?.Count > 0
+                    && _LastIndex > _FirstIndex)
+                {
+                    _FirstIndex += v - _LastIndex;
+                    _LastIndex = v;
+
+                    FirstIndexChanged?.Invoke(_FirstIndex);
+                    LastIndexChanged?.Invoke(_LastIndex);
+
+                    CollectionChanged = true;
+
+                    StateHasChanged();
+                }
+            }
+        }
+
+        [Parameter]
+        public Action<int> LastIndexChanged { get; set; }
+
         protected abstract int ColumnCount { get; }
 
         protected async void SetVisibleRange(int first, int last, float localY, bool forceScroll)
@@ -127,14 +181,21 @@ namespace Shipwreck.BlazorFramework.Components
             }
             if (FirstIndex != first || LastIndex != last)
             {
-                FirstIndex = first;
-                LastIndex = last;
+                _FirstIndex = first;
+                _LastIndex = last;
+
+                FirstIndexChanged?.Invoke(_FirstIndex);
+                LastIndexChanged?.Invoke(_LastIndex);
 
                 StateHasChanged();
                 if (forceScroll && first >= 0)
                 {
                     await ScrollAsync(first, localY).ConfigureAwait(false);
                 }
+            }
+            else if (forceScroll)
+            {
+                await ScrollAsync(first, localY).ConfigureAwait(false);
             }
         }
 

@@ -69,6 +69,36 @@ namespace Shipwreck.BlazorFramework.Demo.Pages.ItemsControls
 
         #endregion Items
 
+        #region MyRegion
+
+        private int _FirstIndex;
+
+        protected int FirstIndex
+        {
+            get => _FirstIndex;
+            set
+            {
+                if (value != _FirstIndex)
+                {
+                    NewFirstIndex = _FirstIndex = value;
+                    StateHasChanged();
+                }
+            }
+        }
+
+        protected int NewFirstIndex { get; set; }
+
+        public void SetFirstIndex()
+        {
+            if (NewFirstIndex != _FirstIndex)
+            {
+                _FirstIndex = NewFirstIndex;
+                StateHasChanged();
+            }
+        }
+
+        #endregion MyRegion
+
         private IEnumerable<string> GetData()
             => Enumerable.Range(0, Count).Select(e => e.ToString("x4"));
     }

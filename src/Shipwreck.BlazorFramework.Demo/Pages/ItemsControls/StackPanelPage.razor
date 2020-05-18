@@ -40,10 +40,16 @@
                 @onclick="@(() => Apply())">
             Apply
         </button>
+        <input @bind="@NewFirstIndex" />
+        <button type="button"
+                @onclick="@(() => SetFirstIndex())">
+            Scroll
+        </button>
     </div>
     <StackPanel T="string"
                 Source="@Items"
                 DefaultItemHeight="112"
+                @bind-FirstIndex="@FirstIndex"
                 class="scroller">
         <ItemTemplate Context="context">
             <div class="scroller-item"

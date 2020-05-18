@@ -42,11 +42,17 @@
                 @onclick="@(() => Apply())">
             Apply
         </button>
+        <input @bind="@NewFirstIndex" />
+        <button type="button"
+                @onclick="@(() => SetFirstIndex())">
+            Scroll
+        </button>
     </div>
     <WrapPanel T="string"
                Source="@Items"
                DefaultItemWidth="208"
                DefaultItemHeight="144"
+               @bind-FirstIndex="@FirstIndex"
                class="scroller">
         <ItemTemplate Context="context">
             <div class="scroller-item"
