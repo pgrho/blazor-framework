@@ -200,20 +200,20 @@ namespace Shipwreck.BlazorFramework.Components
         }
 
 
-        protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence)
+        protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence, int firstIndex)
             => RenderPaddingCore(
                 builder,
                 ref sequence,
                 0,
-                FirstIndex - 1,
-                Math.Max(0, (FirstIndex + ColumnCount - 1) / ColumnCount) * ItemHeight, tagName: "tr");
+                firstIndex - 1,
+                Math.Max(0, (firstIndex + ColumnCount - 1) / ColumnCount) * ItemHeight, tagName: "tr");
 
-        protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence)
+        protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence, int lastIndex)
             => RenderPaddingCore(
                 builder,
                 ref sequence,
-                LastIndex + 1,
+                lastIndex + 1,
                 Source.Count - 1,
-                Math.Max(0, (Source.Count - LastIndex + ColumnCount - 2) / ColumnCount * ItemHeight), tagName: "tr");
+                Math.Max(0, (Source.Count - lastIndex + ColumnCount - 2) / ColumnCount * ItemHeight), tagName: "tr");
     }
 }

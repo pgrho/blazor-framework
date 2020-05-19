@@ -201,6 +201,19 @@ namespace Shipwreck.BlazorFramework.Components
 
         #endregion Range
 
+        #region MinimumRenderingCount
+
+        private int _MinimumRenderingCount;
+
+        [Parameter]
+        public int MinimumRenderingCount
+        {
+            get => _MinimumRenderingCount;
+            set => SetProperty(ref _MinimumRenderingCount, Math.Max(0, value));
+        }
+
+        #endregion
+
         protected abstract void SetScroll(ItemsControlScrollInfo info, bool forceScroll);
 
         protected abstract void UpdateRange(ScrollInfo info, int firstIndex, float localY, bool forceScroll);
@@ -260,14 +273,26 @@ namespace Shipwreck.BlazorFramework.Components
 
             builder.AddElementReferenceCapture(sequence++, v => Element = v);
 
+            sequence = RenderItemsAndPaddings(builder, ref sequence);
+
+            builder.CloseElement();
+        }
+
+        protected virtual int RenderItemsAndPaddings(RenderTreeBuilder builder, ref int sequence)
+        {
             if (Source != null)
             {
-                RenderFirstPadding(builder, ref sequence);
+                var firstIndex = FirstIndex;
+                var lastIndex = LastIndex;
 
-                if (FirstIndex >= 0)
+                GetRenderingRange(ref firstIndex, ref lastIndex);
+
+                RenderFirstPadding(builder, ref sequence, firstIndex);
+
+                if (firstIndex >= 0)
                 {
-                    var li = Math.Min(LastIndex, Source.Count - 1);
-                    for (var i = FirstIndex; i <= li; i++)
+                    var li = Math.Min(lastIndex, Source.Count - 1);
+                    for (var i = firstIndex; i <= li; i++)
                     {
                         builder.AddContent(sequence, ItemTemplate(new ItemTemplateContext<T>(i, Source[i])));
                     }
@@ -275,10 +300,48 @@ namespace Shipwreck.BlazorFramework.Components
 
                 sequence++;
 
-                RenderLastPadding(builder, ref sequence);
+                RenderLastPadding(builder, ref sequence, lastIndex);
             }
 
-            builder.CloseElement();
+            return sequence;
+        }
+
+        protected virtual void GetRenderingRange(ref int firstIndex, ref int lastIndex)
+        {
+            var rc = MinimumRenderingCount;
+            if (Source?.Count > 0
+                && rc > 0
+                && (lastIndex - firstIndex + 1) < rc)
+            {
+                if (Source.Count <= rc)
+                {
+                    firstIndex = 0;
+                    lastIndex = Source.Count - 1;
+                }
+                else if (0 <= firstIndex && firstIndex <= lastIndex)
+                {
+                    var bh = rc >> 1;
+                    var ah = rc - bh;
+
+                    var center = (firstIndex + lastIndex) >> 1;
+
+                    if (center <= bh)
+                    {
+                        firstIndex = 0;
+                        lastIndex = rc - 1;
+                    }
+                    else if (center + ah >= Source.Count - 1)
+                    {
+                        lastIndex = Source.Count - 1;
+                        firstIndex = lastIndex - rc + 1;
+                    }
+                    else
+                    {
+                        firstIndex = center - bh;
+                        lastIndex = center + ah;
+                    }
+                }
+            }
         }
 
         protected static void RenderPaddingCore(RenderTreeBuilder builder, ref int sequence, int firstIndex, int lastIndex, float height, string tagName = "div")
@@ -297,9 +360,9 @@ namespace Shipwreck.BlazorFramework.Components
             builder.CloseElement();
         }
 
-        protected abstract void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence);
+        protected abstract void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence, int firstIndex);
 
-        protected abstract void RenderLastPadding(RenderTreeBuilder builder, ref int sequence);
+        protected abstract void RenderLastPadding(RenderTreeBuilder builder, ref int sequence, int lastIndex);
 
         #endregion BuildRenderTree
 

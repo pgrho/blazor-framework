@@ -12,23 +12,9 @@
                 </thead>
             }
             <tbody @attributes="@GetBodyAttributes()">
-                @if (Source != null)
-                {
+                @{
                     var sequence = 100;
-                    RenderFirstPadding(__builder, ref sequence);
-
-                    if (FirstIndex >= 0)
-                    {
-                        var li = Math.Min(LastIndex, Source.Count - 1);
-                        for (var i = FirstIndex; i <= li; i++)
-                        {
-                            __builder.AddContent(sequence, ItemTemplate(new ItemTemplateContext<T>(i, Source[i])));
-                        }
-                    }
-
-                    sequence++;
-
-                    RenderLastPadding(__builder, ref sequence);
+                    RenderItemsAndPaddings(__builder, ref sequence);
                 }
             </tbody>
         </table>

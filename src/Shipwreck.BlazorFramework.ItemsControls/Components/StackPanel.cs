@@ -70,23 +70,24 @@ namespace Shipwreck.BlazorFramework.Components
 
         protected override string GetTagName() => TagName ?? base.GetTagName();
 
-        protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence)
+
+        protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence, int firstIndex)
             => RenderPaddingCore(
                 builder,
                 ref sequence,
                 0,
-                FirstIndex - 1,
+                firstIndex - 1,
                 Math.Max(
                     0,
-                    FirstIndex * ItemHeight));
+                    firstIndex * ItemHeight));
 
-        protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence)
+        protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence, int lastIndex)
             => RenderPaddingCore(
                 builder,
                 ref sequence,
-                LastIndex + 1,
+                lastIndex + 1,
                 Source.Count - 1,
-                Math.Max(0, (Source.Count - LastIndex - 1) * ItemHeight));
+                Math.Max(0, (Source.Count - lastIndex - 1) * ItemHeight));
 
         #endregion BuildRenderTree
     }

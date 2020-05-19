@@ -49,6 +49,7 @@
     <StackPanel T="string"
                 Source="@Items"
                 DefaultItemHeight="112"
+                MinimumRenderingCount="50"
                 @bind-FirstIndex="@FirstIndex"
                 class="scroller">
         <ItemTemplate Context="context">
