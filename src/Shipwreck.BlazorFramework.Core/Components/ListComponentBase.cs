@@ -196,8 +196,8 @@ namespace Shipwreck.BlazorFramework.Components
         public IEnumerable<string> IgnoresItemProperties { get; set; }
 
         protected virtual bool OnItemPropertyChanged(T item, string propertyName)
-            => DependsOnItemProperties?.Contains(propertyName) != false
-            && IgnoresItemProperties?.Contains(propertyName) != true;
+        => (DependsOnItemProperties == null && IgnoresItemProperties == null)
+            || (DependsOnItemProperties?.Contains(propertyName) != false && IgnoresItemProperties?.Contains(propertyName) != true);
 
         protected virtual bool OnSourcePropertyChanged(string propertyName)
             => propertyName != nameof(Source.Count) && propertyName != "[]";
