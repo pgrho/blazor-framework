@@ -399,6 +399,27 @@ namespace Shipwreck.BlazorFramework.ViewModels
             return false;
         }
 
+        public KeyValuePair<int, T>[] GetLoadedItems()
+        {
+            lock (SyncRoot)
+            {
+                var pl = _Pages.Where(e => e.Task.IsCompletedSuccessfully).OrderBy(e => e.Offset).ToList();
+                var tc = pl.Sum(e => e.Task.Result.Items.Count);
+                var r = new KeyValuePair<int, T>[tc];
+                var i = 0;
+                foreach (var p in pl)
+                {
+                    var oi = p.Offset;
+                    foreach (var e in p.Task.Result.Items)
+                    {
+                        r[i++] = new KeyValuePair<int, T>(oi++, e);
+                    }
+                }
+
+                return r;
+            }
+        }
+
         #region IEnumerable<T>
 
         public IEnumerator<T> GetEnumerator()
