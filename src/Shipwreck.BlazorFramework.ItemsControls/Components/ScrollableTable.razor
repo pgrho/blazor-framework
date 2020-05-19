@@ -1,17 +1,17 @@
 ﻿@typeparam T
 @inherits StackPanel<T>
-<div @attributes="@GetWrapperAttributes()">
-    <div @attributes="@GetHeaderAttributes()"></div>
+<div @attributes="@GetElementAttributes()">
+    <div @attributes="@GetHeaderBackgroundAttributes()"></div>
     <div @attributes="@GetScrollerAttributes()"
          @ref="@Element">
         <table @attributes="@GetTableAttributes()">
             @if (HeaderTemplate != null)
             {
-                <thead @attributes="@GetHeadAttributes()">
+                <thead @attributes="@GetTableHeadAttributes()">
                     @HeaderTemplate
                 </thead>
             }
-            <tbody @attributes="@GetBodyAttributes()">
+            <tbody @attributes="@GetTableBodyAttributes()">
                 @{
                     var sequence = 100;
                     RenderItemsAndPaddings(__builder, ref sequence);

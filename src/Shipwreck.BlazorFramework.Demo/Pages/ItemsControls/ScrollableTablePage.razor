@@ -38,7 +38,7 @@
                      DefaultItemHeight="20"
                      MinimumRenderingCount="50"
                      HeaderHeight="calc(1.5rem)"
-                     HeaderBackground="red"
+                     HeaderBackgroundBackground="red"
                      @bind-FirstIndex="@FirstIndex"
                      class="scrollable-table-root">
         <HeaderTemplate>
@@ -49,11 +49,10 @@
             </tr>
         </HeaderTemplate>
         <ItemTemplate Context="context">
-            <tr data-itemindex="@context.Index"
-                style="overflow-anchor: none">
-                <td style="width: 4rem">@context.Index</td>
-                <td style="width: 8rem">@(context.Item ?? "????")</td>
-                <td style="width: 8rem">@context.Item?.GetHashCode()</td>
+            <tr data-itemindex="@context.Index">
+                <td>@context.Index</td>
+                <td>@(context.Item ?? "????")</td>
+                <td>@context.Item?.GetHashCode()</td>
             </tr>
         </ItemTemplate>
     </ScrollableTable>

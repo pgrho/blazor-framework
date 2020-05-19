@@ -1,13 +1,25 @@
-﻿<th @attributes="@AdditionalAttributes">
-    <div style="position: absolute;box-sizing: border-box;top: 0;">
+﻿<th @attributes="@GetTableCellAttributes()">
+    <div @attributes="@GetTableCellInnerAttributes()">
         @ChildContent
     </div>
 </th>
 @code
 {
+    [CascadingParameter]
+    public ScrollableTableTheme Theme { get; set; }
+
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object> AdditionalAttributes { get; set; }
 
     [Parameter]
+    public IDictionary<string, object> InnerAttributes { get; set; }
+
+    [Parameter]
     public RenderFragment ChildContent { get; set; }
+
+    private IEnumerable<KeyValuePair<string, object>> GetTableCellAttributes()
+        => AdditionalAttributes.MergeAttributes(Theme?.TableHeaderCellAttributes);
+
+    private IEnumerable<KeyValuePair<string, object>> GetTableCellInnerAttributes()
+        => InnerAttributes.MergeAttributes(Theme?.TableHeaderCellInnerAttributes).PrependStyle("position: absolute;box-sizing: border-box;top: 0");
 }

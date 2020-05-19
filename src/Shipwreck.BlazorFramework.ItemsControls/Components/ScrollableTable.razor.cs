@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
@@ -14,191 +13,124 @@ namespace Shipwreck.BlazorFramework.Components
             ItemSelector = ":scope > table > tbody > tr[data-itemindex]";
         }
 
+        [CascadingParameter]
+        public ScrollableTableTheme Theme { get; set; }
+
         [Parameter]
         public string HeaderHeight { get; set; }
 
         #region Wrapper
 
         [Parameter]
-        public string WrapperClass { get; set; }
+        public string ElementClass { get; set; }
 
-
-        private IEnumerable<KeyValuePair<string, object>> GetWrapperAttributes()
+        protected virtual IEnumerable<KeyValuePair<string, object>> GetElementAttributes()
         {
-            var wrapperAttrs = AdditionalAttributes ?? Enumerable.Empty<KeyValuePair<string, object>>();
-            if (WrapperClass != null)
+            var attrs = AdditionalAttributes.MergeAttributes(Theme?.ElementAttributes).AppendClass(ElementClass ?? Theme?.ElementClass);
+
+            var h = HeaderHeight ?? Theme?.HeaderHeight;
+            if (h != null)
             {
-                wrapperAttrs = AddClass(wrapperAttrs, WrapperClass);
+                attrs = attrs.PrependStyle("padding-top:" + h);
             }
-            if (HeaderHeight != null)
-            {
-                wrapperAttrs = AddStyle(wrapperAttrs, "padding-top:" + HeaderHeight);
-            }
-            return wrapperAttrs;
+            return attrs;
         }
 
+        #endregion Wrapper
 
-        #endregion
-
-        #region Header
+        #region Header Background
 
         [Parameter]
         public string HeaderBackgroundClass { get; set; }
 
         [Parameter]
-        public string HeaderBackground { get; set; }
+        public string HeaderBackgroundBackground { get; set; }
 
         [Parameter]
-        public Dictionary<string, object> HeaderAttributes { get; set; }
+        public Dictionary<string, object> HeaderBackgroundAttributes { get; set; }
 
         [Parameter]
         public RenderFragment HeaderTemplate { get; set; }
 
-        private IEnumerable<KeyValuePair<string, object>> GetHeaderAttributes()
+        protected virtual IEnumerable<KeyValuePair<string, object>> GetHeaderBackgroundAttributes()
         {
-            var headerAttrs = HeaderAttributes ?? Enumerable.Empty<KeyValuePair<string, object>>();
-            if (HeaderBackgroundClass != null)
-            {
-                headerAttrs = AddClass(headerAttrs, HeaderBackgroundClass);
-            }
-            var headerStyle = "position: absolute;top: 0;width: 100%;";
+            var attrs = HeaderBackgroundAttributes.MergeAttributes(Theme?.HeaderBackgroundAttributes)
+                            .AppendClass(HeaderBackgroundClass ?? Theme?.HeaderBackgroundClass);
 
-            if (HeaderHeight != null)
+            var s = "position: absolute;top: 0;width: 100%;";
+            var h = HeaderHeight ?? Theme?.HeaderHeight;
+            if (h != null)
             {
-                headerStyle += ";height:" + HeaderHeight;
+                s += ";height:" + h;
             }
-            if (HeaderBackground != null)
+            var bg = HeaderBackgroundBackground ?? Theme?.HeaderBackgroundBackground;
+            if (bg != null)
             {
-                headerStyle += ";background:" + HeaderBackground;
+                s += ";background:" + bg;
             }
-            return AddStyle(headerAttrs, headerStyle);
+            return attrs.PrependStyle(s);
         }
 
-        #endregion
+        #endregion Header Background
 
         #region Scroller
+
         [Parameter]
         public string ScrollerClass { get; set; }
 
         [Parameter]
         public Dictionary<string, object> ScrollerAttributes { get; set; }
 
+        protected virtual IEnumerable<KeyValuePair<string, object>> GetScrollerAttributes()
+            => ScrollerAttributes.MergeAttributes(Theme?.ScrollerAttributes)
+                    .AppendClass(ScrollerClass ?? Theme?.ScrollerClass)
+                    .PrependStyle("overflow-x: hidden;overflow-y: auto;min-height: 80%;max-height: 100%;-webkit-overflow-scrolling: touch;");
 
-        private IEnumerable<KeyValuePair<string, object>> GetScrollerAttributes()
-        {
-            var scrollerAttrs = ScrollerAttributes ?? Enumerable.Empty<KeyValuePair<string, object>>();
-            if (ScrollerClass != null)
-            {
-                scrollerAttrs = AddClass(scrollerAttrs, ScrollerClass);
-            }
-
-            return AddStyle(scrollerAttrs, "overflow-x: hidden;overflow-y: auto;min-height: 80%;max-height: 100%;-webkit-overflow-scrolling: touch;");
-        }
-        #endregion
+        #endregion Scroller
 
         #region Table
+
         [Parameter]
         public string TableClass { get; set; }
 
         [Parameter]
         public Dictionary<string, object> TableAttributes { get; set; }
 
+        protected virtual IEnumerable<KeyValuePair<string, object>> GetTableAttributes()
+            => TableAttributes.MergeAttributes(Theme?.TableAttributes)
+                    .AppendClass(TableClass ?? Theme?.TableClass)
+                    .PrependStyle("overflow-anchor: none");
 
-        private IEnumerable<KeyValuePair<string, object>> GetTableAttributes()
-        {
-            var TableAttrs = TableAttributes ?? Enumerable.Empty<KeyValuePair<string, object>>();
-            if (TableClass != null)
-            {
-                TableAttrs = AddClass(TableAttrs, TableClass);
-            }
+        #endregion Table
 
-            return AddStyle(TableAttrs, "overflow-anchor: none");
-        }
-        #endregion
-
-        #region Head
-        [Parameter]
-        public string HeadClass { get; set; }
+        #region Table Head
 
         [Parameter]
-        public Dictionary<string, object> HeadAttributes { get; set; }
+        public string TableHeadClass { get; set; }
 
+        [Parameter]
+        public Dictionary<string, object> TableHeadAttributes { get; set; }
 
-        private IEnumerable<KeyValuePair<string, object>> GetHeadAttributes()
-        {
-            var HeadAttrs = HeadAttributes ?? Enumerable.Empty<KeyValuePair<string, object>>();
-            if (HeadClass != null)
-            {
-                HeadAttrs = AddClass(HeadAttrs, HeadClass);
-            }
+        protected virtual IEnumerable<KeyValuePair<string, object>> GetTableHeadAttributes()
+            => TableHeadAttributes.MergeAttributes(Theme?.TableHeadAttributes)
+                .AppendClass(TableHeadClass ?? Theme?.TableHeadClass);
 
-            return HeadAttrs;
-        }
-        #endregion
+        #endregion Table Head
+
         #region Body
-        [Parameter]
-        public string BodyClass { get; set; }
 
         [Parameter]
-        public Dictionary<string, object> BodyAttributes { get; set; }
+        public string TableBodyClass { get; set; }
 
+        [Parameter]
+        public Dictionary<string, object> TableBodyAttributes { get; set; }
 
-        private IEnumerable<KeyValuePair<string, object>> GetBodyAttributes()
-        {
-            var BodyAttrs = BodyAttributes ?? Enumerable.Empty<KeyValuePair<string, object>>();
-            if (BodyClass != null)
-            {
-                BodyAttrs = AddClass(BodyAttrs, BodyClass);
-            }
+        protected virtual IEnumerable<KeyValuePair<string, object>> GetTableBodyAttributes()
+            => TableBodyAttributes.MergeAttributes(Theme?.TableBodyAttributes)
+                .AppendClass(TableBodyClass ?? Theme?.TableBodyClass)
+                .PrependStyle("overflow-anchor:none");
 
-            return AddStyle(BodyAttrs, "overflow-anchor: none");
-        }
-        #endregion
-
-
-         
-        private static IEnumerable<KeyValuePair<string, object>> AddClass(IEnumerable<KeyValuePair<string, object>> s, string c)
-        {
-            var found = false;
-            foreach (var kv in s)
-            {
-                if (!found && "class".Equals(kv.Key, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    yield return new KeyValuePair<string, object>("class", kv.Value + " " + c);
-                    found = true;
-                }
-                else
-                {
-                    yield return kv;
-                }
-            }
-            if (!found)
-            {
-                yield return new KeyValuePair<string, object>("class", c);
-            }
-        }
-
-        private static IEnumerable<KeyValuePair<string, object>> AddStyle(IEnumerable<KeyValuePair<string, object>> s, string c)
-        {
-            var found = false;
-            foreach (var kv in s)
-            {
-                if (!found && "style".Equals(kv.Key, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    yield return new KeyValuePair<string, object>("style", kv.Value + ";" + c);
-                    found = true;
-                }
-                else
-                {
-                    yield return kv;
-                }
-            }
-            if (!found)
-            {
-                yield return new KeyValuePair<string, object>("style", c);
-            }
-        }
-
+        #endregion Body
 
         protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence, int firstIndex)
             => RenderPaddingCore(
