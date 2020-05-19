@@ -212,9 +212,9 @@ namespace Shipwreck.BlazorFramework.Components
             set => SetProperty(ref _MinimumRenderingCount, Math.Max(0, value));
         }
 
-        #endregion
+        #endregion MinimumRenderingCount
 
-        protected abstract void SetScroll(ItemsControlScrollInfo info, bool forceScroll);
+        protected abstract void SetControlInfo(ItemsControlScrollInfo info, bool forceScroll, int? firstIndex = null);
 
         protected abstract void UpdateRange(ScrollInfo info, int firstIndex, float localY, bool forceScroll);
 
@@ -232,9 +232,9 @@ namespace Shipwreck.BlazorFramework.Components
             if (CollectionChanged)
             {
                 _CollectionChanged = false;
-                var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
-
-                UpdateRange(si, Math.Max(FirstIndex, 0), 0, true);
+                var si = await JS.GetItemsControlScrollInfoAsync(Element, ItemSelector).ConfigureAwait(false);
+                SetLines(si.Lines);
+                SetControlInfo(si, true, FirstIndex);
             }
         }
 
@@ -254,8 +254,19 @@ namespace Shipwreck.BlazorFramework.Components
         public void OnElementScroll(string jsonScrollInfo)
         {
             var si = JsonSerializer.Deserialize<ItemsControlScrollInfo>(jsonScrollInfo);
+            SetLines(si.Lines);
+            SetControlInfo(si, false);
+        }
 
-            SetScroll(si, false);
+        protected List<ItemsControllLineInfo> Lines { get; } = new List<ItemsControllLineInfo>();
+
+        private void SetLines(IList<ItemsControllLineInfo> lines)
+        {
+            Lines.Clear();
+            if (lines != null)
+            {
+                Lines.AddRange(lines);
+            }
         }
 
         #region BuildRenderTree

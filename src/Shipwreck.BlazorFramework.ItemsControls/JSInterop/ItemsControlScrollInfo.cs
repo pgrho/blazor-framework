@@ -1,4 +1,6 @@
-﻿namespace Shipwreck.BlazorFramework.JSInterop
+﻿using System.Collections.Generic;
+
+namespace Shipwreck.BlazorFramework.JSInterop
 {
     public sealed class ItemsControlScrollInfo
     {
@@ -7,5 +9,7 @@
         public ItemsControllElementInfo Last { get; set; }
         public float MinWidth { get; set; }
         public float MinHeight { get; set; }
+
+        public IList<ItemsControllLineInfo> Lines { get; set; }
     }
 }

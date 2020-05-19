@@ -137,13 +137,13 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
 
         let min: IElement;
         let max: IElement;
+        const elements: IElement[] = [];
 
         for (let i = 0; i < items.length; i++) {
             const e = items[i] as HTMLElement;
 
             const b: IElement = __offsetInfo(e);
             const bottom = b.Top + b.Height;
-
             if (vt <= bottom
                 && e.offsetTop <= vb) {
                 const sf = parseInt(e.getAttribute('data-itemindex'), 10);
@@ -166,6 +166,21 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
                         minWidth = Math.min(minWidth, b.Width);
                         minHeight = Math.min(minHeight, b.Height);
                     }
+
+                    if (elements.length) {
+                        const prev = elements[elements.length - 1];
+                        if (prev.Top >= b.Top) {
+                            prev.LastIndex = b.LastIndex;
+                            prev.Height = Math.max(prev.Height, b.Top + b.Height - prev.Top);
+                            continue;
+                        }
+                    }
+                    elements.push(<any>{
+                        FirstIndex: b.FirstIndex,
+                        LastIndex: b.LastIndex,
+                        Top: b.Top,
+                        Height: b.Height
+                    });
                 }
             }
         }
@@ -176,6 +191,7 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
             Last: max,
             MinWidth: minWidth !== Number.MAX_SAFE_INTEGER ? minWidth : 0,
             MinHeight: minHeight !== Number.MAX_SAFE_INTEGER ? minHeight : 0,
+            Lines: elements
         };
     }
 

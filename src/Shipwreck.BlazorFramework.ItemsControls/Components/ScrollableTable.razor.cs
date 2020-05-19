@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
@@ -133,12 +134,33 @@ namespace Shipwreck.BlazorFramework.Components
         #endregion Body
 
         protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence, int firstIndex)
-            => RenderPaddingCore(
-                builder,
-                ref sequence,
-                0,
-                firstIndex - 1,
-                Math.Max(0, (firstIndex + ColumnCount - 1) / ColumnCount) * ItemHeight, tagName: "tr");
+        {
+            float height;
+            if (firstIndex <= 0)
+            {
+                height = 0;
+            }
+            else
+            {
+                var el = Lines.FirstOrDefault(e => e.FirstIndex <= firstIndex);
+                if (el != null)
+                {
+                    height = el.Top + el.Height * (firstIndex - el.FirstIndex) / (el.LastIndex - el.FirstIndex + 1);
+                }
+                else
+                {
+                    height = firstIndex * ItemHeight;
+                }
+            }
+
+            RenderPaddingCore(
+                  builder,
+                  ref sequence,
+                  0,
+                  firstIndex - 1,
+                  Math.Max(0, height),
+                  tagName: "tr");
+        }
 
         protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence, int lastIndex)
             => RenderPaddingCore(

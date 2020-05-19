@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Shipwreck.BlazorFramework.JSInterop;
@@ -46,6 +47,48 @@ namespace Shipwreck.BlazorFramework.Components
 
         #endregion ItemHeight
 
+        protected override void SetControlInfo(ItemsControlScrollInfo info, bool forceScroll, int? firstIndex = null)
+        {
+            SetColumnCount(info.Viewport);
+            _MinItemWidth = info.MinWidth > 0 ? info?.MinWidth : null;
+            _MinItemHeight = info.MinHeight > 0 ? info?.MinHeight : null;
+
+            if (firstIndex == null)
+            {
+                int fi;
+                float ft;
+                if (info.First != null)
+                {
+                    ft = info.Viewport.ScrollTop - info.First.Top;
+
+                    var w = info.First.LastIndex + 1 - info.First.FirstIndex;
+                    if (w == 1)
+                    {
+                        fi = info.First.FirstIndex;
+                    }
+                    else
+                    {
+                        var rows = (w - 1) / ColumnCount + 1;
+                        var rh = info.First.Height / rows;
+                        var ri = Math.Min(Math.Max(0, (int)Math.Floor(ft / rh)), rows - 1);
+                        fi = info.First.FirstIndex + ri * ColumnCount;
+                        ft -= rh * ri;
+                    }
+                }
+                else
+                {
+                    fi = 0;
+                    ft = 0;
+                }
+
+                UpdateRange(info.Viewport, fi, ft, forceScroll);
+            }
+            else
+            {
+                UpdateRange(info.Viewport, firstIndex.Value, 0, true);
+            }
+        }
+
         protected override void UpdateRange(ScrollInfo info, int firstIndex, float localY, bool forceScroll)
         {
             SetColumnCount(info);
@@ -53,40 +96,6 @@ namespace Shipwreck.BlazorFramework.Components
             var r = Math.Max((int)Math.Ceiling((info.ClientHeight + localY) / ItemHeight), 1);
 
             SetVisibleRange(firstIndex, firstIndex + ColumnCount * r - 1, localY, forceScroll);
-        }
-
-        protected override void SetScroll(ItemsControlScrollInfo info, bool forceScroll)
-        {
-            SetColumnCount(info.Viewport);
-            _MinItemWidth = info.MinWidth > 0 ? info?.MinWidth : null;
-            _MinItemHeight = info.MinHeight > 0 ? info?.MinHeight : null;
-            int fi;
-            float ft;
-            if (info.First != null)
-            {
-                ft = info.Viewport.ScrollTop - info.First.Top;
-
-                var w = info.First.LastIndex + 1 - info.First.FirstIndex;
-                if (w == 1)
-                {
-                    fi = info.First.FirstIndex;
-                }
-                else
-                {
-                    var rows = (w - 1) / ColumnCount + 1;
-                    var rh = info.First.Height / rows;
-                    var ri = Math.Min(Math.Max(0, (int)Math.Floor(ft / rh)), rows - 1);
-                    fi = info.First.FirstIndex + ri * ColumnCount;
-                    ft -= rh * ri;
-                }
-            }
-            else
-            {
-                fi = 0;
-                ft = 0;
-            }
-
-            UpdateRange(info.Viewport, fi, ft, forceScroll);
         }
 
         #region BuildRenderTree
@@ -107,12 +116,35 @@ namespace Shipwreck.BlazorFramework.Components
         }
 
         protected override void RenderFirstPadding(RenderTreeBuilder builder, ref int sequence, int firstIndex)
-            => RenderPaddingCore(
-                builder,
-                ref sequence,
-                0,
-                firstIndex - 1,
-                Math.Max(0, (firstIndex + ColumnCount - 1) / ColumnCount) * ItemHeight);
+        {
+            float height;
+            if (firstIndex <= 0)
+            {
+                height = 0;
+            }
+            else
+            {
+                var el = Lines.FirstOrDefault(e => e.FirstIndex <= firstIndex);
+                if (el != null)
+                {
+                    var cl = ColumnCount;
+                    var rows = 1 + (el.LastIndex - el.FirstIndex) / cl;
+                    var rowIndex = (firstIndex - el.FirstIndex) / cl;
+                    height = el.Top + el.Height * rowIndex / rows;
+                }
+                else
+                {
+                    height = ((firstIndex + ColumnCount - 1) / ColumnCount) * ItemHeight;
+                }
+            }
+
+            RenderPaddingCore(
+                  builder,
+                  ref sequence,
+                  0,
+                  firstIndex - 1,
+                  Math.Max(0, height));
+        }
 
         protected override void RenderLastPadding(RenderTreeBuilder builder, ref int sequence, int lastIndex)
             => RenderPaddingCore(
