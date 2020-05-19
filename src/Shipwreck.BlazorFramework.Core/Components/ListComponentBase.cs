@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 using Microsoft.AspNetCore.Components;
 
 namespace Shipwreck.BlazorFramework.Components
@@ -188,8 +189,15 @@ namespace Shipwreck.BlazorFramework.Components
             }
         }
 
+        [Parameter]
+        public IEnumerable<string> DependsOnItemProperties { get; set; }
+
+        [Parameter]
+        public IEnumerable<string> IgnoresItemProperties { get; set; }
+
         protected virtual bool OnItemPropertyChanged(T item, string propertyName)
-            => true;
+            => DependsOnItemProperties?.Contains(propertyName) != false
+            && IgnoresItemProperties?.Contains(propertyName) != true;
 
         protected virtual bool OnSourcePropertyChanged(string propertyName)
             => propertyName != nameof(Source.Count) && propertyName != "[]";
