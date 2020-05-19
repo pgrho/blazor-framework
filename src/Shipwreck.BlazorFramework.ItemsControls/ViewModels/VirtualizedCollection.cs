@@ -358,8 +358,11 @@ namespace Shipwreck.BlazorFramework.ViewModels
             }
         }
 
-        protected void RaiseCollectionChanged(NotifyCollectionChangedEventArgs e)
-            => CollectionChanged?.Invoke(this, e);
+        protected virtual void RaiseCollectionChanged(NotifyCollectionChangedEventArgs e)
+        {
+            CollectionChanged?.Invoke(this, e);
+            RaisePropertyChanged(nameof(Count));
+        }
 
         protected virtual void NotifyPageUpdate(PageResult newResult, PageResult oldResult)
         {
