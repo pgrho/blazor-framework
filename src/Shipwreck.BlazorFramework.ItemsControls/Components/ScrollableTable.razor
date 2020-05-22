@@ -17,6 +17,10 @@
                     RenderItemsAndPaddings(__builder, ref sequence);
                 }
             </tbody>
+            @if (FooterTemplate != null)
+            {
+                @FooterTemplate
+            }
         </table>
     </div>
 </div>

@@ -53,6 +53,9 @@ namespace Shipwreck.BlazorFramework.Components
         [Parameter]
         public RenderFragment HeaderTemplate { get; set; }
 
+        [Parameter]
+        public RenderFragment FooterTemplate { get; set; }
+
         protected virtual IEnumerable<KeyValuePair<string, object>> GetHeaderBackgroundAttributes()
         {
             var attrs = HeaderBackgroundAttributes.MergeAttributes(Theme?.HeaderBackgroundAttributes)
