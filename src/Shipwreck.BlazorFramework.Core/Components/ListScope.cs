@@ -7,17 +7,9 @@ namespace Shipwreck.BlazorFramework.Components
         where T : class
     {
         [Parameter]
-        public RenderFragment<T> ItemTemplate { get; set; }
+        public RenderFragment ChildContent { get; set; }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
-        {
-            if (Source != null)
-            {
-                foreach (var e in Source)
-                {
-                    builder.AddContent(0, ItemTemplate(e));
-                }
-            }
-        }
+            => builder.AddContent(0, ChildContent);
     }
 }
