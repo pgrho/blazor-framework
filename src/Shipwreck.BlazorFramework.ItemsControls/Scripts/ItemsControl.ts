@@ -24,8 +24,8 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
         }
     }
 
-    export function attachWindowResize(obj: IHasWindowResize) {
-        if (obj && !obj[WR]) {
+    export function attachWindowResize(obj: IHasWindowResize, element: HTMLElement) {
+        if (obj && !element[WR]) {
             const h = async () => {
                 try {
                     await obj.invokeMethodAsync('OnWindowResized');
@@ -33,15 +33,15 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
                     console.log(ex);
                 }
             };
-            obj[WR] = h;
+            element[WR] = h;
             window.addEventListener('resize', h, { passive: true });
         }
     }
-    export function detachWindowResize(obj: IHasWindowResize) {
+    export function detachWindowResize(obj: IHasWindowResize, element: HTMLElement) {
         let h: any
-        if (obj && (h = obj[WR])) {
+        if (obj && (h = element[WR])) {
             window.removeEventListener('resize', h);
-            delete obj[WR];
+            delete element[WR];
         }
     }
     interface IBound {
@@ -56,16 +56,30 @@ namespace Shipwreck.BlazorFramework.ItemsControls {
     }
 
     export function attachElementScroll(element: HTMLElement, obj: IHasElementScroll, itemSelector: string) {
-        if (obj && !obj[ES]) {
-            const h = async () => {
+        if (obj) {
+            let h = element[ES];
+            if (h) {
+                element.removeEventListener('scroll', h);
+            }
+            h = async () => {
                 try {
                     await obj.invokeMethodAsync('OnElementScroll', JSON.stringify(__itemsControlInfo(element, itemSelector)));
                 } catch (ex) {
                     console.log(ex);
                 }
             };
-            obj[ES] = h;
+            element[ES] = h;
             element.addEventListener('scroll', h, { passive: true });
+        }
+    }
+
+    export function detachElementScroll(element: HTMLElement) {
+        if (element) {
+            const h = element[ES];
+            if (h) {
+                element.removeEventListener('scroll', h);
+                delete element[ES];
+            }
         }
     }
 

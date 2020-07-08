@@ -58,6 +58,8 @@ namespace Shipwreck.BlazorFramework.Demo.Pages.ItemsControls
             }
         }
 
+        public bool VirtualizeComponent { get; set; } = true;
+
         #region Items
 
         private IReadOnlyList<string> _Items;

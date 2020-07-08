@@ -214,6 +214,26 @@ namespace Shipwreck.BlazorFramework.Components
 
         #endregion MinimumRenderingCount
 
+        #region IsVirtualized
+
+        private bool _IsVirtualized = true;
+        private bool _ShouldDetach;
+
+        [Parameter]
+        public bool IsVirtualized
+        {
+            get => _IsVirtualized;
+            set
+            {
+                if (SetProperty(ref _IsVirtualized, value))
+                {
+                    _ShouldDetach = true;
+                }
+            }
+        }
+
+        #endregion IsVirtualized
+
         protected abstract void SetControlInfo(ItemsControlScrollInfo info, bool forceScroll, int? firstIndex = null);
 
         protected abstract void UpdateRange(ScrollInfo info, int firstIndex, float localY, bool forceScroll);
@@ -223,13 +243,20 @@ namespace Shipwreck.BlazorFramework.Components
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (firstRender)
+            if ((firstRender || _ShouldDetach) && _IsVirtualized)
             {
-                await JS.AttachWindowResize(this).ConfigureAwait(false);
+                _ShouldDetach = false;
+                await JS.AttachWindowResize(this, Element).ConfigureAwait(false);
                 await JS.AttachElementScroll(this, Element, ItemSelector).ConfigureAwait(false);
             }
+            else if (!firstRender && _ShouldDetach && !_IsVirtualized)
+            {
+                _ShouldDetach = false;
+                await JS.DetachWindowResize(this, Element).ConfigureAwait(false);
+                await JS.DetachElementScroll(Element).ConfigureAwait(false);
+            }
 
-            if (CollectionChanged)
+            if (CollectionChanged && _IsVirtualized)
             {
                 _CollectionChanged = false;
                 var si = await JS.GetItemsControlScrollInfoAsync(Element, ItemSelector).ConfigureAwait(false);
@@ -241,13 +268,16 @@ namespace Shipwreck.BlazorFramework.Components
         [JSInvokable]
         public async void OnWindowResized()
         {
-            try
+            if (IsVirtualized)
             {
-                var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
+                try
+                {
+                    var si = await JS.GetScrollInfoAsync(Element).ConfigureAwait(false);
 
-                UpdateRange(si, Math.Max(FirstIndex, 0), 0, true);
+                    UpdateRange(si, Math.Max(FirstIndex, 0), 0, true);
+                }
+                catch { }
             }
-            catch { }
         }
 
         [JSInvokable]
@@ -293,25 +323,35 @@ namespace Shipwreck.BlazorFramework.Components
         {
             if (Source != null)
             {
-                var firstIndex = FirstIndex;
-                var lastIndex = LastIndex;
-
-                GetRenderingRange(ref firstIndex, ref lastIndex);
-
-                RenderFirstPadding(builder, ref sequence, firstIndex);
-
-                if (firstIndex >= 0)
+                if (IsVirtualized)
                 {
-                    var li = Math.Min(lastIndex, Source.Count - 1);
-                    for (var i = firstIndex; i <= li; i++)
+                    var firstIndex = FirstIndex;
+                    var lastIndex = LastIndex;
+
+                    GetRenderingRange(ref firstIndex, ref lastIndex);
+
+                    RenderFirstPadding(builder, ref sequence, firstIndex);
+
+                    if (firstIndex >= 0)
+                    {
+                        var li = Math.Min(lastIndex, Source.Count - 1);
+                        for (var i = firstIndex; i <= li; i++)
+                        {
+                            builder.AddContent(sequence, ItemTemplate(new ItemTemplateContext<T>(i, Source[i])));
+                        }
+                    }
+
+                    sequence++;
+
+                    RenderLastPadding(builder, ref sequence, lastIndex);
+                }
+                else
+                {
+                    for (var i = 0; i < Source.Count; i++)
                     {
                         builder.AddContent(sequence, ItemTemplate(new ItemTemplateContext<T>(i, Source[i])));
                     }
                 }
-
-                sequence++;
-
-                RenderLastPadding(builder, ref sequence, lastIndex);
             }
 
             return sequence;
@@ -386,11 +426,14 @@ namespace Shipwreck.BlazorFramework.Components
 
         protected virtual void Dispose(bool disposing)
         {
-            if (IsDisposed)
+            if (!IsDisposed)
             {
-                if (disposing && JS != null)
+                if (disposing
+                    && JS != null
+                    && Element.Id != null
+                    && (IsVirtualized || _ShouldDetach))
                 {
-                    JS.DetachWindowResize(this);
+                    JS.DetachWindowResize(this, Element);
                 }
             }
             IsDisposed = true;

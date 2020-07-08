@@ -37,7 +37,14 @@
 <div class="root">
     <div>
         <input type="number" min="1" max="65535" @bind="@Count" />
-        <input type="checkbox" @bind="@IsVirtualized" />
+        <input id="virtualizeSource"
+                type="checkbox"
+                @bind="@IsVirtualized" />
+        <label for="virtualizeSource">Virtualize Source</label>
+        <input id="virtualizeComponent"
+                type="checkbox"
+                @bind="@VirtualizeComponent" />
+        <label for="virtualizeComponent">Virtualize Component</label>
         <button type="button"
                 @onclick="@(() => Apply())">
             Apply
@@ -50,6 +57,7 @@
     </div>
     <WrapPanel T="string"
                Source="@Items"
+               IsVirtualized="@VirtualizeComponent"
                DefaultItemWidth="208"
                DefaultItemHeight="144"
                MinimumRenderingCount="50"

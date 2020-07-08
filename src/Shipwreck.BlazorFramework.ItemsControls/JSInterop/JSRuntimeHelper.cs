@@ -7,10 +7,11 @@ namespace Shipwreck.BlazorFramework.JSInterop
 {
     public static class JSRuntimeHelper
     {
-        public static ValueTask AttachWindowResize(this IJSRuntime js, IWindowResizeEventListener listener)
+        public static ValueTask AttachWindowResize(this IJSRuntime js, IWindowResizeEventListener listener, ElementReference element)
             => js.InvokeVoidAsync(
                 "Shipwreck.BlazorFramework.ItemsControls.attachWindowResize",
-                DotNetObjectReference.Create(listener));
+                DotNetObjectReference.Create(listener),
+                element);
 
         public static ValueTask ScrollTo(this IJSRuntime js, ElementReference element, float left, float top, bool isSmooth)
             => js.InvokeVoidAsync(
@@ -20,10 +21,11 @@ namespace Shipwreck.BlazorFramework.JSInterop
             => js.InvokeVoidAsync(
                 "Shipwreck.BlazorFramework.ItemsControls.scrollToItem", element, itemSelector, index, localY, column, isSmooth);
 
-        public static ValueTask DetachWindowResize(this IJSRuntime js, IWindowResizeEventListener listener)
+        public static ValueTask DetachWindowResize(this IJSRuntime js, IWindowResizeEventListener listener, ElementReference element)
             => js.InvokeVoidAsync(
                 "Shipwreck.BlazorFramework.ItemsControls.detachWindowResize",
-                DotNetObjectReference.Create(listener));
+                DotNetObjectReference.Create(listener),
+                element);
 
         public static ValueTask AttachElementScroll(this IJSRuntime js, IScrollEventListener listener, ElementReference element, string itemSelector)
             => js.InvokeVoidAsync(
@@ -31,6 +33,11 @@ namespace Shipwreck.BlazorFramework.JSInterop
                 element,
                 DotNetObjectReference.Create(listener),
                 itemSelector);
+
+        public static ValueTask DetachElementScroll(this IJSRuntime js, ElementReference element)
+            => js.InvokeVoidAsync(
+                "Shipwreck.BlazorFramework.ItemsControls.detachElementScroll",
+                element);
 
         public static async ValueTask<ScrollInfo> GetScrollInfoAsync(this IJSRuntime js, ElementReference element)
         {
