@@ -22,7 +22,7 @@ Supports firing `StateHasChanged` on handling `INotifyCollectionChanged.Collecti
 #### Static Web Assets
 
 ```html
-<script src="_content/Shipwreck.BlazorFramework.ItemsControls/index.min.js"></script>
+<script src="Shipwreck.BlazorFramework.ItemsControls.min.js"></script>
 ```
 
 #### Types

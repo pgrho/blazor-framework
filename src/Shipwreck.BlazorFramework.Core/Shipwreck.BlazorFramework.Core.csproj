@@ -1,15 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Shipwreck.BlazorFramework</RootNamespace>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Base classes for writing Blazor WebAssembly components with DataContext.</Description>  
-</PropertyGroup>
+    <Description>Base classes for writing Blazor WebAssembly components with DataContext.</Description>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="3.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -10,15 +10,15 @@ gulp.task('clean', function () {
 });
 gulp.task('tsc', function () {
     return gulp.src(['Scripts/*.ts']).pipe(ts({
-        outFile: 'index.js'
+        outFile: 'Shipwreck.BlazorFramework.ItemsControls.js'
     })).pipe(gulp.dest('wwwroot/'));
 });
 gulp.task('minify', function () {
     return gulp.src([
         'Scripts/Copyright.js',
-        'wwwroot/index.js'
+        'wwwroot/Shipwreck.BlazorFramework.ItemsControls.js'
     ])
-        .pipe(concat('index.min.js'))
+        .pipe(concat('Shipwreck.BlazorFramework.ItemsControls.min.js'))
         .pipe(uglify({
             output: {
                 comments: /^!/
