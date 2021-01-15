@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using Shipwreck.ViewModelUtils;
 
 namespace Shipwreck.BlazorFramework.ViewModels
 {
-    public abstract class VersionedModel<TKey, TVersion> : StatefulModel, IVersionedModel<TKey, TVersion>
+    public abstract class VersionedModel<TKey, TVersion> : ObservableModel, IVersionedModel<TKey, TVersion>
     {
         protected abstract TKey GetKey();
 

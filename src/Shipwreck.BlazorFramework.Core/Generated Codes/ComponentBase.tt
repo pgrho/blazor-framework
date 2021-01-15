@@ -4,14 +4,12 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Components;
-using Shipwreck.BlazorFramework.ViewModels;
+using Shipwreck.ViewModelUtils;
 
 <#
 foreach (var g in new [] {
     new { NS = "Shipwreck.BlazorFramework.Components", T = "BindableComponentBase" },
     new { NS = "Shipwreck.BlazorFramework.Components", T = "BindableLayoutComponentBase" },
-    new { NS = "Shipwreck.BlazorFramework.ViewModels", T = "StatefulModel" },
-    // new { NS = "Shipwreck.BlazorFramework.ViewModels", T = "StatefulCollection<T>" },
 }.GroupBy(e => e.NS))
 {
     var isComponent = g.Key.StartsWith("Shipwreck.BlazorFramework.Components");

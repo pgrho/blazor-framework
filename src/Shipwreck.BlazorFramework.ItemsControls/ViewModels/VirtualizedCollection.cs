@@ -5,10 +5,11 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+using Shipwreck.ViewModelUtils;
 
 namespace Shipwreck.BlazorFramework.ViewModels
 {
-    public abstract class VirtualizedCollection<T> : StatefulModel, IList<T>, IReadOnlyList<T>, IList, INotifyCollectionChanged
+    public abstract class VirtualizedCollection<T> : ObservableModel, IList<T>, IReadOnlyList<T>, IList, INotifyCollectionChanged
         where T : class
     {
         public sealed class PageResult

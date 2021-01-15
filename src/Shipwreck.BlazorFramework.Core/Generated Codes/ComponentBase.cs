@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Components;
-using Shipwreck.BlazorFramework.ViewModels;
+using Shipwreck.ViewModelUtils;
 
 namespace Shipwreck.BlazorFramework.Components
 {
@@ -112,59 +112,6 @@ namespace Shipwreck.BlazorFramework.Components
         protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null, bool shouldNotify = true)
         {
             if (shouldNotify) StateHasChanged();
-        }
-    }
-}
-namespace Shipwreck.BlazorFramework.ViewModels
-{
-    partial class StatefulModel
-    {
-        protected bool SetProperty(ref string field, string value, [CallerMemberName]string propertyName = null, Action onChanged = null)
-        {
-            if (value != field)
-            {
-                field = value;
-                onChanged?.Invoke();
-                if (propertyName != null) RaisePropertyChanged(propertyName);
-                return true;
-            }
-            return false;
-        }
-
-        protected bool SetProperty<TValue>(ref TValue field, TValue value, [CallerMemberName]string propertyName = null, Action onChanged = null)
-        {
-            if (!((field as IEquatable<TValue>)?.Equals(value) ?? Equals(field, value)))
-            {
-                field = value;
-                onChanged?.Invoke();
-                if (propertyName != null) RaisePropertyChanged(propertyName);
-                return true;
-            }
-            return false;
-        }
-
-        protected bool SetFlagProperty(ref byte field, byte flag, bool hasFlag, [CallerMemberName]string propertyName = null, Action onChanged = null)
-        {
-            var nv = (byte)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, propertyName, onChanged);
-        }
-
-        protected bool SetFlagProperty(ref ushort field, ushort flag, bool hasFlag, [CallerMemberName]string propertyName = null, Action onChanged = null)
-        {
-            var nv = (ushort)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, propertyName, onChanged);
-        }
-
-        protected bool SetFlagProperty(ref uint field, uint flag, bool hasFlag, [CallerMemberName]string propertyName = null, Action onChanged = null)
-        {
-            var nv = (uint)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, propertyName, onChanged);
-        }
-
-        protected bool SetFlagProperty(ref ulong field, ulong flag, bool hasFlag, [CallerMemberName]string propertyName = null, Action onChanged = null)
-        {
-            var nv = (ulong)(hasFlag ? (field | flag) : (field & ~flag));
-            return SetProperty(ref field, nv, propertyName, onChanged);
         }
     }
 }
